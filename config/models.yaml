@@ -1,0 +1,17 @@
+models:
+  mediapipe_pose_heavy:
+    family: MediaPipe
+    adapter: mediapipe
+    output_mapping: mediapipe33_to_coco17_v1
+  movenet_thunder:
+    family: MoveNet
+    adapter: movenet
+    output_mapping: movenet17_to_coco17_v1
+  rtmpose_m:
+    family: MMPose
+    adapter: mmpose
+    output_mapping: coco17_identity
+  yolo11x_pose:
+    family: Ultralytics
+    adapter: yolo
+    output_mapping: coco17_identity

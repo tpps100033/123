@@ -1,0 +1,9 @@
+jupyterlab
+ipykernel
+pyyaml
+pandas
+matplotlib
+pillow
+opencv-python-headless
+tqdm
+nvidia-ml-py

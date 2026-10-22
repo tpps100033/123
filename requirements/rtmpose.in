@@ -1,0 +1,4 @@
+-r requirements/base.in
+onnxruntime-gpu
+rtmlib
+onnx

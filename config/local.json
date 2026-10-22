@@ -1,0 +1,24 @@
+{
+  "data_root": "02_datasets",
+  "model_cache": "02_datasets/model_cache",
+  "canonical": "02_datasets/canonical",
+  "raw_outputs": "03_model_raw_outputs",
+  "merged_results": "04_merged_results",
+  "analysis_results": "05_analysis_results",
+  "logs": "06_logs",
+  "datasets": {
+    "coco_singleperson_val2017": {
+      "raw": "02_datasets/source_archives/COCO_SinglePerson_val2017_921.zip",
+      "annotation": "02_datasets/person_keypoints_val2017_singleperson.json",
+      "expected_samples": 921,
+      "mapping": "identity_coco17_v1"
+    },
+    "syrip_test100": {
+      "raw": "02_datasets/source_archives/SyRIP.zip",
+      "annotation": "02_datasets/person_keypoints_validate_infant_test100.json",
+      "expected_samples": 100,
+      "mapping": "syrip_to_coco17_v1"
+    }
+  },
+  "profile": "fair_reference"
+}

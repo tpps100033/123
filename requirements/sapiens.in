@@ -1,0 +1,5 @@
+-r requirements/base.in
+torch
+torchvision
+huggingface-hub
+pyarrow

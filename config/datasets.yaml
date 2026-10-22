@@ -1,0 +1,14 @@
+benchmark_id: InfantPose-Bench-v4
+datasets:
+  coco_singleperson_val2017:
+    display_name: COCO SinglePerson val2017
+    domain: adult
+    expected_samples: 921
+    annotation_contract: coco17
+    metric: oks_pck10_coverage
+  syrip_test100:
+    display_name: SyRIP Test100
+    domain: infant
+    expected_samples: 100
+    annotation_contract: coco17_verified_mapping
+    metric: oks_pck10_coverage

@@ -1,0 +1,24 @@
+# Research data and downloaded model assets must remain local.
+02_datasets/source_archives/*
+02_datasets/canonical/*
+02_datasets/model_cache/*
+02_datasets/*.json
+03_model_raw_outputs/*
+04_merged_results/*
+05_analysis_results/*
+06_logs/*
+!.gitkeep
+
+# Python and notebook runtime artifacts
+.venv*/
+.venvs/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+*.log
+*.part
+.env
+.env.*
+!.env.example
+notebooks/original/

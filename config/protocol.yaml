@@ -1,0 +1,10 @@
+profiles:
+  fair_reference:
+    batch_size: 1
+    warmup_images: 10
+    precision: fp32
+    amp: false
+    compile: false
+    quantization: false
+    tensor_rt: false
+    rankable_across_models: true
