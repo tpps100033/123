@@ -26,7 +26,7 @@ DATASETS = ('coco_singleperson_val2017', 'syrip_test100')
 for dataset in DATASETS:
     subprocess.run([sys.executable, str(ROOT/'scripts'/'run_research.py'), '--model', MODEL, '--dataset', dataset], check=True)
 """]
-    notebook(stem+'_FairReference_local.ipynb',title+'｜本地 fair_reference',f'請選擇 **{kernel}** kernel。正式協定固定 batch=1、10 張 warm-up、FP32；不修改評估定義。執行前先完成 `00`，並確認模型快取與兩個已驗證資料 handoff 均存在。',[*cells])
+    notebook(stem+'_FairReference_local.ipynb',title+'｜本地 fair_reference',f'請選擇 **{kernel}** kernel。正式協定固定 batch=1、10 張 warm-up、FP32；指標由官方 `pycocotools.COCOeval(iouType="keypoints")` 計算。COCO 結果是 921 張單人子集上的 AP，不代表完整 val2017 排行榜成績；SyRIP 標示為自訂資料域的 COCO OKS 評估。執行前先完成 `00`，並確認模型快取與兩個已驗證資料 handoff 均存在。',[*cells])
 notebook('05_Sapiens_1B_local.ipynb','05｜Sapiens 1B（非 v4 正式範圍）','原始 Colab Notebook 保留在 `../original/`。PRD v4 明確將 Sapiens 排除在正式模型範圍外；本地不載入 gated 權重、不產生比較分數，也不把 import 當成通過測試。',[boot,"print({'model_id':'sapiens_1b_coco','status':'not_in_v4_formal_scope','source_notebook':'../original/05_Sapiens_1B_FairReference_v4.ipynb'})"])
 notebook('06_OpenPose_COCO18_local.ipynb','06｜OpenPose COCO-18 相容性驗證','原始 Notebook 使用 Colab/Linux OpenPose v1.7.0 執行檔。RTX 5060 / WSL2 的本地 runtime 尚未建置；此入口會寫出 blocked 狀態，不會偽造推論通過。',[boot,"""import subprocess, sys
 subprocess.run([sys.executable, str(ROOT/'scripts'/'validate_model.py'), '--model', 'openpose_coco18'], check=False)
@@ -34,7 +34,7 @@ subprocess.run([sys.executable, str(ROOT/'scripts'/'validate_model.py'), '--mode
 notebook('90_Merge_FairReference_local.ipynb','90｜合併公平基準結果','只接受完整 921/100 張資料集的 `fair_reference_v1` runs。歷史匯入資料不會加入跨模型 timing 排名。',[boot,"""import subprocess, sys
 subprocess.run([sys.executable, str(ROOT/'scripts'/'merge_results.py')], check=True)
 """])
-notebook('91_Analyse_TwoDomain_FairReference_local.ipynb','91｜兩域結果分析','只整理 COCO val2017 與 SyRIP Test100 的實際成對輸出；缺失分數不補造。',[boot,"""import subprocess, sys
+notebook('91_Analyse_TwoDomain_FairReference_local.ipynb','91｜兩域結果分析','只整理 COCO 子集 AP 與 SyRIP COCO-OKS 評估器的實際成對輸出；缺失分數不補造。',[boot,"""import subprocess, sys
 subprocess.run([sys.executable, str(ROOT/'scripts'/'analyse_results.py')], check=True)
 """])
 print(f'Wrote local notebook entry points to {OUT}')

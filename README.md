@@ -1,6 +1,6 @@
 # InfantPose-Bench — Windows 11 + WSL2 migration
 
-This project keeps the Colab research artifacts intact and adds local WSL2 entry points. The fixed benchmark contract remains batch 1, 10 warm-up images, FP32, with AMP, compilation, quantization, and TensorRT disabled. Timing includes image decode, preprocessing, inference, and postprocessing. A failed or missed pose remains in the denominator with end-to-end OKS/PCK of zero; conditional metrics and coverage stay separate.
+This project keeps the Colab research artifacts intact and adds local WSL2 entry points. The fixed benchmark contract remains batch 1, 10 warm-up images, FP32, with AMP, compilation, quantization, and TensorRT disabled. Timing includes image decode, preprocessing, inference, and postprocessing. Accuracy uses the official `cocodataset/cocoapi` `COCOeval(iouType='keypoints')` implementation with its default OKS thresholds, keypoint sigmas, area ranges, recall thresholds, and `maxDets=20`. COCO-subset AP is reported as subset AP, not as a full-val2017 leaderboard score. SyRIP uses the same evaluator and is labeled as a custom-domain COCO-OKS evaluation. Pose coverage is diagnostic only, not an accuracy metric.
 
 ## Current state
 
@@ -10,7 +10,7 @@ The RTX 5060 and NVIDIA Windows driver are detected. WSL has no Ubuntu distribut
 
 1. On Windows, run `powershell -ExecutionPolicy Bypass -File .\scripts\check_environment.ps1`.
 2. Install WSL2 and Ubuntu if the check reports that no distribution is installed. This changes Windows optional features and may require administrator approval and a reboot. The existing Windows NVIDIA driver is used by WSL; do not install a Linux NVIDIA display driver inside Ubuntu.
-3. In Ubuntu, install Python 3.11 and venv support (`sudo apt update && sudo apt install -y python3.11 python3.11-venv`), then run `bash scripts/setup_wsl.sh` from this project directory. It creates isolated MediaPipe, MoveNet, RTMPose, and YOLO virtual environments under `.venvs/`, registers one kernel per environment, and records resolved package versions under `requirements/locks/`. The setup enforces `PIP_REQUIRE_VIRTUALENV` and never installs model packages into global or Windows Python.
+3. In Ubuntu, install Python 3.11 and venv support (`sudo apt update && sudo apt install -y python3.11 python3.11-venv`), then run `bash scripts/setup_wsl.sh` from this project directory. It creates isolated MediaPipe, MoveNet, RTMPose, and YOLO virtual environments under `.venvs/`, installs `pycocotools` in each for official evaluation, registers one kernel per environment, and records resolved package versions under `requirements/locks/`. The setup enforces `PIP_REQUIRE_VIRTUALENV` and never installs model packages into global or Windows Python.
 4. Run `python scripts/gpu_diagnostics.py` inside each kernel. An import by itself is not a GPU validation: the diagnostic runs a CUDA matrix operation and records the actual framework device/provider.
 5. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and four Python-model weights have already been imported from the five user-provided ZIP parts. `scripts/prepare_datasets.py` verifies and reuses the 921/100-row handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. Set `HF_TOKEN` only if separately authorized for gated Sapiens downloads; never commit a real token.
 6. Run the local `00` notebook, then run `scripts/validate_model.py --model <model> --dataset coco_singleperson_val2017` for an actual model smoke test. Only after it reports `inference_pass`, run the corresponding model notebook on both datasets.
@@ -42,4 +42,4 @@ Each model runtime has its own environment because TensorFlow, MediaPipe, ONNX R
 - `04_merged_results/` and `05_analysis_results/`: reproducible CSV/JSON summaries.
 - `06_logs/`: GPU diagnostics, per-model validation, and append-only run summaries.
 
-Research results are not regenerated from imported historical summaries. `90` only considers complete new fair-reference runs. The COCO/SyRIP handoffs must retain their original sample selection and mapping; if a source annotation is missing, preparation stops instead of substituting a different dataset.
+Research results are not regenerated from imported historical summaries. `90` only considers complete new fair-reference runs with successful COCOeval output. The COCO/SyRIP handoffs must retain their original sample selection and mapping; if a source annotation is missing, preparation stops instead of substituting a different dataset.

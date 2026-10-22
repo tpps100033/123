@@ -15,14 +15,14 @@ class RTMPoseM(BaseAdapter):
     def predict(self,row,profile):
         from PIL import Image
         started=perf_counter(); t=perf_counter(); rgb=np.asarray(Image.open(row['image_path']).convert('RGB')); decode=(perf_counter()-t)*1000
-        t=perf_counter(); det_input,ratio=self.detector.preprocess(image); prep_det=(perf_counter()-t)*1000
+        t=perf_counter(); det_input,ratio=self.detector.preprocess(rgb); prep_det=(perf_counter()-t)*1000
         t=perf_counter(); det_outputs=self.detector.inference(det_input); inf_det=(perf_counter()-t)*1000
         t=perf_counter(); boxes=self.detector.postprocess(det_outputs[0],ratio); post_det=(perf_counter()-t)*1000
         if len(boxes)==0:
             timing={'decode':decode,'preprocess':prep_det,'inference':inf_det,'postprocess':post_det,'end_to_end':(perf_counter()-started)*1000}
             return Prediction(row['sample_id'],row['dataset_id'],self.model_id,'','no_detection',timings_ms=timing,error_code='NO_DETECTION',native={'detections':0})
         areas=(boxes[:,2]-boxes[:,0])*(boxes[:,3]-boxes[:,1]); box=boxes[int(np.argmax(areas))]
-        t=perf_counter(); pose_input,center,scale=self.pose.preprocess(image,box); prep_pose=(perf_counter()-t)*1000
+        t=perf_counter(); pose_input,center,scale=self.pose.preprocess(rgb,box); prep_pose=(perf_counter()-t)*1000
         t=perf_counter(); pose_outputs=self.pose.inference(pose_input); inf_pose=(perf_counter()-t)*1000
         t=perf_counter(); points,scores=self.pose.postprocess(pose_outputs,center,scale); post_pose=(perf_counter()-t)*1000
         points,scores=np.asarray(points),np.asarray(scores)

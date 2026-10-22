@@ -6,7 +6,7 @@ from .contracts import Prediction, RunManifest
 from .data import load_handoff, sha256
 
 FAIR_REFERENCE={'batch_size':1,'warmup_images':10,'precision':'fp32','amp':False,'compile':False,'quantization':False,'tensor_rt':False,'rankable_across_models':True}
-from .metrics import score, summarise
+from .metrics import evaluate_coco_keypoints, per_image_status
 
 def _write_jsonl(path, rows):
     with open(path,'w',encoding='utf-8') as f:
@@ -45,7 +45,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     except Exception as e:
         load_error=e
     load_ms=(perf_counter()-load_started)*1000
-    predictions=[]; metrics=[]
+    predictions=[]
     for row in rows:
         try:
             if load_error: raise load_error
@@ -57,9 +57,20 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
                 if torch.cuda.is_available() and isinstance(e,torch.cuda.OutOfMemoryError): torch.cuda.empty_cache()
             except Exception: pass
             p=Prediction(row['sample_id'],manifest['dataset_id'],adapter.model_id,run_id,'model_error',error_code=type(e).__name__,native={'message':str(e)[:1000]},timings_ms={'decode':0.0,'preprocess':0.0,'inference':0.0,'postprocess':0.0,'end_to_end':0.0})
-        p.run_id=run_id; p.validate(); predictions.append(p.record()); metrics.append(score(row,p))
+        p.run_id=run_id; p.validate(); predictions.append(p.record())
     timing=[p.get('timings_ms',{}).get('end_to_end') for p in predictions]; timing=[x for x in timing if x is not None]
-    summary=summarise(metrics); summary['latency_ms']={'n':len(timing),'mean':sum(timing)/len(timing) if timing else None,'median':statistics.median(timing) if timing else None,'p95':sorted(timing)[max(0,int(.95*len(timing))-1)] if timing else None}
+    evaluation_error=None; metric_rows=[]
+    try:
+        project_root=Path(__file__).resolve().parents[1]
+        config=json.loads((project_root/'config/local.json').read_text(encoding='utf-8'))
+        annotation_file=project_root/config['datasets'][manifest['dataset_id']]['annotation']
+        summary, valid_by_sample=evaluate_coco_keypoints(annotation_file,rows,predictions)
+        metric_rows=per_image_status(rows,predictions,valid_by_sample)
+    except Exception as e:
+        evaluation_error=f'{type(e).__name__}: {e}'
+        summary={'metric_protocol':'cocodataset/cocoapi.COCOeval(iouType=keypoints)','evaluation_status':'failed','evaluation_error':evaluation_error}
+        metric_rows=[{'sample_id':p['sample_id'],'image_id':next(row.get('image_id',row['sample_id']) for row in rows if row['sample_id']==p['sample_id']),'prediction_status':p['status'],'included_as_detection':False,'error_code':p.get('error_code')} for p in predictions]
+    summary['latency_ms']={'n':len(timing),'mean':sum(timing)/len(timing) if timing else None,'median':statistics.median(timing) if timing else None,'p95':sorted(timing)[max(0,int(.95*len(timing))-1)] if timing else None}
     out=Path(output_root)/adapter.model_id/manifest['dataset_id']/profile/run_id; out.mkdir(parents=True)
     env={'platform':platform.platform(),'python':platform.python_version(),'gpu_memory':_gpu_memory_snapshot()}
     try:
@@ -76,12 +87,13 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     counts={'input':len(rows),'ok':len([p for p in predictions if p['status']=='ok']),'no_detection':len([p for p in predictions if p['status']=='no_detection']),'errors':len([p for p in predictions if p['status'] in ('model_error','input_error','mapping_error')])}
     provenance=adapter.provenance()
     expected=921 if manifest['dataset_id']=='coco_singleperson_val2017' else 100 if manifest['dataset_id']=='syrip_test100' else None
-    metric_complete=load_error is None and expected is not None and len(rows)==expected and counts['errors']==0
+    metric_complete=load_error is None and evaluation_error is None and expected is not None and len(rows)==expected and counts['errors']==0
     runtime_device=str(provenance.get('runtime_device','')).lower()
     timing_comparable=metric_complete and runtime_device in ('gpu','cuda','cuda:0','gpu_delegate')
     rm=RunManifest('InfantPose-Bench-v4','v4.run',run_id,manifest['dataset_id'],adapter.model_id,profile,sha256(Path(handoff_root)/'dataset_manifest.json'),provenance,env,protocol,counts,summary).record()
     rm.update({'data_handoff_hash':manifest['index_sha256'],'weight_source':provenance.get('weight_source'),'metric_complete':metric_complete,'timing_comparability':timing_comparable,'fair_ranking_eligible':timing_comparable,'timing_scope':'decode + preprocessing + inference + postprocessing','warmup':{'images':10,'attempted':min(10,len(rows)),'excluded_from_metrics':True,'errors':getattr(adapter,'warmup_errors',[])},'model_load_ms':load_ms,'model_load_error':None if load_error is None else type(load_error).__name__,'profile_id':'fair_reference_v1'})
-    (out/'run_manifest.json').write_text(json.dumps(rm,indent=2),encoding='utf-8'); _write_jsonl(out/'predictions.jsonl',predictions); _write_jsonl(out/'metrics.jsonl',metrics)
+    rm.update({'evaluation_error':evaluation_error,'metric_protocol':summary.get('metric_protocol'),'metric_protocol_version':summary.get('metric_protocol_version')})
+    (out/'run_manifest.json').write_text(json.dumps(rm,indent=2),encoding='utf-8'); _write_jsonl(out/'predictions.jsonl',predictions); _write_jsonl(out/'metrics.jsonl',metric_rows)
     log_root=Path(output_root).parent/'06_logs'; log_root.mkdir(parents=True,exist_ok=True)
     with (log_root/'runs.jsonl').open('a',encoding='utf-8') as f: f.write(json.dumps({'run_id':run_id,'model_id':adapter.model_id,'dataset_id':manifest['dataset_id'],'path':str(out),'counts':rm['counts'],'timing':summary,'gpu_memory':env.get('gpu_memory'),'model_load_error':rm['model_load_error']},ensure_ascii=False)+'\n')
     return out
