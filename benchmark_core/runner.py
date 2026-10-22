@@ -48,7 +48,9 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     if bad: raise RuntimeError(f'fair_reference 協定被更動：{bad}')
     manifest, rows=load_handoff(handoff_root); run_id=f'{adapter.model_id}_{manifest["dataset_id"]}_{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}_{uuid.uuid4().hex[:6]}'
     load_started=perf_counter(); load_error=None
-    thermal_limit=int(os.environ.get('INFANTPOSE_MAX_GPU_TEMP_C','75')); thermal_stop=None
+    thermal_limit=int(os.environ.get('INFANTPOSE_MAX_GPU_TEMP_C','75'))
+    thermal_check_interval=max(1,int(os.environ.get('INFANTPOSE_TEMP_CHECK_INTERVAL','5')))
+    thermal_stop=None
     try:
         adapter.load(profile)
         adapter.warmup(rows[:10],profile)
@@ -62,7 +64,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     for index,row in enumerate(rows):
         if thermal_stop:
             break
-        if index % 10 == 0:
+        if index % thermal_check_interval == 0:
             temperature=_gpu_temperature_c()
             if temperature is not None and temperature >= thermal_limit:
                 thermal_stop={'temperature_c':temperature,'limit_c':thermal_limit,'processed':len(predictions),'phase':'inference'}
@@ -113,7 +115,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     runtime_device=str(provenance.get('runtime_device','')).lower()
     timing_comparable=metric_complete and runtime_device in ('gpu','cuda','cuda:0','gpu_delegate')
     rm=RunManifest('InfantPose-Bench-v4','v4.run',run_id,manifest['dataset_id'],adapter.model_id,profile,sha256(Path(handoff_root)/'dataset_manifest.json'),provenance,env,protocol,counts,summary).record()
-    rm.update({'data_handoff_hash':manifest['index_sha256'],'weight_source':provenance.get('weight_source'),'metric_complete':metric_complete,'timing_comparability':timing_comparable,'fair_ranking_eligible':timing_comparable,'timing_scope':'decode + preprocessing + inference + postprocessing','warmup':{'images':10,'attempted':min(10,len(rows)),'excluded_from_metrics':True,'errors':getattr(adapter,'warmup_errors',[])},'model_load_ms':load_ms,'model_load_error':None if load_error is None else type(load_error).__name__,'thermal_stop':thermal_stop,'thermal_limit_c':thermal_limit,'processed_images':len(predictions),'profile_id':'fair_reference_v1'})
+    rm.update({'data_handoff_hash':manifest['index_sha256'],'weight_source':provenance.get('weight_source'),'metric_complete':metric_complete,'timing_comparability':timing_comparable,'fair_ranking_eligible':timing_comparable,'timing_scope':'decode + preprocessing + inference + postprocessing','warmup':{'images':10,'attempted':min(10,len(rows)),'excluded_from_metrics':True,'errors':getattr(adapter,'warmup_errors',[])},'model_load_ms':load_ms,'model_load_error':None if load_error is None else type(load_error).__name__,'thermal_stop':thermal_stop,'thermal_limit_c':thermal_limit,'thermal_check_interval_images':thermal_check_interval,'processed_images':len(predictions),'profile_id':'fair_reference_v1'})
     rm.update({'evaluation_error':evaluation_error,'metric_protocol':summary.get('metric_protocol'),'metric_protocol_version':summary.get('metric_protocol_version')})
     (out/'run_manifest.json').write_text(json.dumps(rm,indent=2),encoding='utf-8'); _write_jsonl(out/'predictions.jsonl',predictions); _write_jsonl(out/'metrics.jsonl',metric_rows)
     log_root=Path(output_root).parent/'06_logs'; log_root.mkdir(parents=True,exist_ok=True)

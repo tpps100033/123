@@ -4,7 +4,7 @@ This project keeps the Colab research artifacts intact and adds local WSL2 entry
 
 ## Current state
 
-The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M and YOLO11x-Pose passed real CUDA inference smoke checks; RTMPose completed both formal datasets. YOLO's COCO run stopped at 71°C and its partial output was not scored. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. OpenPose remains blocked pending a compatible local runtime. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
+The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M and YOLO11x-Pose passed real CUDA inference smoke checks; RTMPose completed both formal datasets. YOLO's COCO run stopped at 71°C even with ASUS V16 Full Speed fan mode selected; partial output was not scored. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. OpenPose remains blocked pending a compatible local runtime. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
 
 ## Setup
 
@@ -35,7 +35,7 @@ python tools/build_local_notebooks.py
 
 Each model runtime has its own environment because TensorFlow, MediaPipe, ONNX Runtime, and PyTorch stacks can constrain conflicting dependencies. The PyTorch setup uses the official PyTorch 2.12.0 / torchvision 0.27.0 CUDA 13.2 wheels, matching the RTX 5060 Blackwell architecture. ONNX Runtime CUDA/cuDNN libraries are installed as RTMPose venv dependencies. Resolved package versions are recorded in the lock snapshots.
 
-`run_all_research.sh` executes each supported adapter against both canonical datasets sequentially with a 65°C cutoff by default. Override with `INFANTPOSE_MAX_GPU_TEMP_C`; a thermal stop exits the script. OpenPose is deliberately excluded because no compatible WSL adapter/runtime is available.
+`run_all_research.sh` executes each supported adapter against both canonical datasets sequentially with a 65°C cutoff and checks temperature every five images by default. Override with `INFANTPOSE_MAX_GPU_TEMP_C` and `INFANTPOSE_TEMP_CHECK_INTERVAL`; a thermal stop exits the script. OpenPose is deliberately excluded because no compatible WSL adapter/runtime is available.
 
 ## Outputs and cache
 

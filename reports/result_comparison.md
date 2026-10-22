@@ -13,8 +13,8 @@ COCO scores below cover the exact selected 921-image single-person subset; they 
 | RTMPose-M + YOLOX-M | CUDA | COCO 921 | 0.77481 | 0.89555 | 0.83961 | 0.80510 | Complete |
 | RTMPose-M + YOLOX-M | CUDA | SyRIP 100 | 0.83417 | 0.96999 | 0.93737 | 0.84800 | Complete |
 | YOLO11x-Pose | CUDA | SyRIP 100 | 0.75071 | 0.98653 | 0.86314 | 0.78300 | Complete |
-| YOLO11x-Pose | CUDA | COCO 921 | — | — | — | — | Stopped at 670/921 at 71°C; partial predictions not scored |
+| YOLO11x-Pose | CUDA + ASUS Full Speed fans | COCO 921 | — | — | — | — | Latest retry stopped at 156/921 at 71°C; partial predictions not scored |
 
-MediaPipe and MoveNet GPU inference could not be enabled in this WSL setup. MoveNet's TensorFlow GPU libraries and TFLite GPU delegate are unavailable; MediaPipe's GPU task rejects WSL's software renderer. Their CPU predictions remain useful for metric comparison but are not GPU timing baselines. RTMPose and YOLO passed actual CUDA inference smoke checks. YOLO's 921-image COCO run hit the 70°C conservative stop between checks and was recorded at 71°C; the 75°C hard default was not reached. Further one-click runs use a 65°C cutoff by default.
+MediaPipe and MoveNet GPU inference could not be enabled in this WSL setup. MoveNet's TensorFlow GPU libraries and TFLite GPU delegate are unavailable; MediaPipe's GPU task rejects WSL's software renderer. Their CPU predictions remain useful for metric comparison but are not GPU timing baselines. RTMPose and YOLO passed actual CUDA inference smoke checks. ASUS MyASUS Full Speed fan mode is selected while on AC power. Even so, YOLO's latest 921-image COCO retry hit the 70°C limit after 156 images and was recorded at 71°C; partial predictions were not scored, and the 75°C hard default was not reached. Future one-click runs use a 65°C cutoff by default.
 
 No paired official COCOeval score from the original Colab run was found, so a numerical Colab-to-local delta cannot be calculated. Historical custom OKS/PCK outputs remain preserved and are not reinterpreted as COCOeval results. The machine-generated paired comparison is in `05_analysis_results/analysis_20261022T164221Z/comparison_report.md`.
