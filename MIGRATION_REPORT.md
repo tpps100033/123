@@ -37,6 +37,7 @@ Sources: [NVIDIA RTX prerequisites and compute capability](https://docs.nvidia.c
 - Preserved the source archive and unmodified Drive notebooks.
 - Added WSL environment check, isolated per-model environment bootstrap, model asset cache/download script, dataset handoff preparation, GPU diagnostics, model inference smoke validation, formal runner entry point, merge and analysis scripts, and local notebook generator.
 - Added local paths/configuration, dependency input files, ignored data/weights/outputs, and GPU memory/environment fields in run manifests/logs.
+- The model environment bootstrap uses one project-local venv per framework/model and requires pip to be inside a venv. It does not install Python packages globally or alter the installed Windows Python.
 - Added single/batch adapter entry points. Smoke validation explicitly checks an actual single image and a two-image sequential batch and writes `06_logs/model_validation_<model>.json`.
 - Added OOM recovery for per-image inference so one failed sample is logged and later images continue. Error/no-detection rows remain zero-scored in the original denominator; an incomplete run cannot enter accuracy merge, and CPU/failure runs cannot enter GPU timing rankings.
 

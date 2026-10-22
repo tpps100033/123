@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PIP_REQUIRE_VIRTUALENV=true
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python3.11}"
 command -v "$PYTHON_BIN" >/dev/null || { echo "Need $PYTHON_BIN plus python3.11-venv (Ubuntu packages)." >&2; exit 2; }
