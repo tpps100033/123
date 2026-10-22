@@ -4,7 +4,7 @@ This project keeps the Colab research artifacts intact and adds local WSL2 entry
 
 ## Current state
 
-The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M and YOLO11x-Pose passed real CUDA inference smoke checks; RTMPose completed both formal datasets. YOLO's COCO run stopped at 71°C even with ASUS V16 Full Speed fan mode selected; partial output was not scored. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. OpenPose remains blocked pending a compatible local runtime. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
+The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M and YOLO11x-Pose passed real CUDA inference smoke checks; both completed both formal datasets. YOLO's COCO subset AP is 0.72192 with ASUS V16 Full Speed fan mode and an 85°C stop limit. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. OpenPose remains blocked pending a compatible local runtime. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
 
 ## Setup
 
