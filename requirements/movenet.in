@@ -1,4 +1,4 @@
--r requirements/base.in
+-r base.in
 tensorflow[and-cuda]
 tf-keras
 ai-edge-litert

@@ -1,4 +1,4 @@
--r requirements/base.in
-onnxruntime-gpu
-rtmlib
+-r base.in
+onnxruntime-gpu[cuda,cudnn]
 onnx
+opencv-contrib-python

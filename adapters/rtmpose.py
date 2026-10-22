@@ -8,10 +8,35 @@ class RTMPoseM(BaseAdapter):
     def load(self,profile):
         from rtmlib import YOLOX, RTMPose
         import onnxruntime as ort
-        providers=ort.get_available_providers()
-        self.runtime_device='cuda' if 'CUDAExecutionProvider' in providers else 'cpu'
-        self.detector=YOLOX(str(self.detector_path),model_input_size=(640,640),backend='onnxruntime',device='cuda:0' if self.runtime_device=='cuda' else 'cpu')
-        self.pose=RTMPose(str(self.pose_path),model_input_size=(192,256),backend='onnxruntime',device='cuda:0' if self.runtime_device=='cuda' else 'cpu')
+        # ONNX Runtime can list CUDA as an available provider while failing to
+        # load its CUDA libraries and silently falling back to CPU. Preload the
+        # CUDA/cuDNN wheels from this isolated venv before creating sessions.
+        preload_error = None
+        if hasattr(ort, 'preload_dlls'):
+            try:
+                ort.preload_dlls(directory='')
+            except Exception as exc:
+                preload_error = f'{type(exc).__name__}: {exc}'
+        available = ort.get_available_providers()
+        requested_device = 'cuda:0' if 'CUDAExecutionProvider' in available else 'cpu'
+        self.detector=YOLOX(str(self.detector_path),model_input_size=(640,640),backend='onnxruntime',device=requested_device)
+        self.pose=RTMPose(str(self.pose_path),model_input_size=(192,256),backend='onnxruntime',device=requested_device)
+        self.session_providers = {
+            'detector': self.detector.session.get_providers(),
+            'pose': self.pose.session.get_providers(),
+        }
+        self.runtime_device = 'cuda' if all(
+            'CUDAExecutionProvider' in providers
+            for providers in self.session_providers.values()
+        ) else 'cpu'
+        self.gpu_fallback_reason = None
+        if self.runtime_device != 'cuda':
+            self.gpu_fallback_reason = (
+                f'CUDAExecutionProvider unavailable in actual ONNX sessions; '
+                f'available={available}, session_providers={self.session_providers}'
+            )
+            if preload_error:
+                self.gpu_fallback_reason += f'; preload_error={preload_error}'
     def predict(self,row,profile):
         from PIL import Image
         started=perf_counter(); t=perf_counter(); rgb=np.asarray(Image.open(row['image_path']).convert('RGB')); decode=(perf_counter()-t)*1000
@@ -33,4 +58,4 @@ class RTMPoseM(BaseAdapter):
             return Prediction(row['sample_id'],row['dataset_id'],self.model_id,'','mapping_error',timings_ms=timing,error_code='INVALID_COCO17_OUTPUT',native={'points_shape':list(points.shape),'scores_shape':list(scores.shape),'selected_bbox':np.asarray(box).tolist(),'detected_people':int(len(boxes))})
         pts=points.astype(float).tolist(); confidence=scores.astype(float).tolist()
         return Prediction(row['sample_id'],row['dataset_id'],self.model_id,'','ok',pts,confidence,timings_ms=timing,native={'selected_bbox':np.asarray(box).tolist(),'detected_people':int(len(boxes))})
-    def provenance(self): return {'model_id':self.model_id,'adapter':type(self).__name__,'weight_source':'OpenMMLab RTMlib ONNX SDK (RTMPose-M + YOLOX-M)','runtime_device':getattr(self,'runtime_device','unknown'),'amp':False,'compile':False,'quantization':False,'tensorrt':False}
+    def provenance(self): return {'model_id':self.model_id,'adapter':type(self).__name__,'weight_source':'OpenMMLab RTMlib ONNX SDK (RTMPose-M + YOLOX-M)','runtime_device':getattr(self,'runtime_device','unknown'),'session_providers':getattr(self,'session_providers',None),'gpu_fallback_reason':getattr(self,'gpu_fallback_reason',None),'amp':False,'compile':False,'quantization':False,'tensorrt':False}

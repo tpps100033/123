@@ -20,15 +20,15 @@ This migration keeps the four v4 Python adapters runnable, preserves the OpenPos
 
 ## Hardware and runtime compatibility
 
-Observed on the host:
+Verified after the user enabled WSL2 and restarted:
 
-- Windows 11 host, NVIDIA GeForce RTX 5060, 8,151 MiB reported VRAM.
-- NVIDIA driver 610.71; `nvidia-smi` reports CUDA UMD 13.3.
-- WSL reports the installation instructions and has no Ubuntu distribution (`wsl --list --verbose` is empty/not configured).
-- Python launcher has only Python 3.9.13. No Torch, TensorFlow, MediaPipe, OpenCV, Jupyter, or ONNX Runtime packages are installed.
-- Git is available in the Visual Studio installation; the new standalone `InfantPose` repository is on branch `migration/windows-local-gpu`.
+- Windows 11, RTX 5060 Laptop GPU, 8,151 MiB VRAM, NVIDIA driver 610.71 (CUDA UMD 13.3).
+- Ubuntu 24.04.5 under WSL2, kernel `6.18.54.1-microsoft-standard-WSL2`, Python 3.12.3; GPU is exposed through the existing Windows driver.
+- Isolated model venvs and Jupyter kernels are under `/home/tpps1/.local/share/infantpose/venvs/`; no project dependencies were installed into Windows/global Python.
+- RTMPose environment: PyTorch 2.12.0+cu132 and ONNX Runtime 1.31.0. The two RTMLib ONNX sessions report actual `CUDAExecutionProvider` plus CPU fallback providers.
+- Model-specific resolved dependencies are snapshotted in `requirements/locks/*-linux.txt`.
 
-NVIDIA lists RTX 5000 series Blackwell at compute capability 12.0, first supported by CUDA 12.8. PyTorch's official 2.7 release introduced Blackwell support with CUDA 12.8 wheels. The bootstrap resolves current packages from the CUDA 12.8 wheel index and snapshots the resolved versions; it does not pin an old PyTorch version. The installed host driver reports CUDA 13.3, so it can run applications using the earlier 12.8 runtime. WSL2 GPU compute uses the Windows driver; do not install a second Linux GPU driver inside WSL.
+The RTX 5060 is Blackwell compute capability 12.0; the PyTorch CUDA 13.2 wheel in the isolated RTMPose/YOLO environments completed an actual CUDA matrix operation and model inference. WSL uses the Windows driver; no separate Linux NVIDIA display driver was installed.
 
 Sources: [NVIDIA RTX prerequisites and compute capability](https://docs.nvidia.com/deeplearning/tensorrt-rtx/latest/installing-tensorrt-rtx/prerequisites.html), [NVIDIA CUDA on WSL guide](https://docs.nvidia.com/cuda/archive/13.2.0/wsl-user-guide/index.html), [PyTorch 2.7 Blackwell release notes](https://pytorch.org/blog/pytorch-2-7/), [PyTorch local installation selector](https://pytorch.org/get-started/locally/).
 
@@ -37,22 +37,26 @@ Sources: [NVIDIA RTX prerequisites and compute capability](https://docs.nvidia.c
 - Preserved the source archive and unmodified Drive notebooks.
 - Added WSL environment check, isolated per-model environment bootstrap, model asset cache/download script, dataset handoff preparation, GPU diagnostics, model inference smoke validation, formal runner entry point, merge and analysis scripts, and local notebook generator.
 - Added local paths/configuration, dependency input files, ignored data/weights/outputs, and GPU memory/environment fields in run manifests/logs.
-- The model environment bootstrap uses one project-local venv per framework/model and requires pip to be inside a venv. It does not install Python packages globally or alter the installed Windows Python.
+- The model environment bootstrap uses one WSL-home venv per framework/model and requires pip to be inside a venv. It does not install Python packages globally or alter the installed Windows Python.
 - At the user's request, the local scoring path was changed from project-defined per-image mean OKS/PCK to official `cocodataset/cocoapi.COCOeval(iouType='keypoints')`; unchanged COCO defaults produce AP/AP50/AP75/AP-medium/AP-large and AR equivalents. COCO output is explicitly the 921-image single-person subset; SyRIP is custom-domain COCO-OKS AP. Pose coverage is diagnostic only. Each pose detection score is the mean of its 17 model keypoint confidence values.
 - Added single/batch adapter entry points. Smoke validation explicitly checks an actual single image and a two-image sequential batch and writes `06_logs/model_validation_<model>.json`.
 - Added OOM recovery for per-image inference so one failed sample is logged and later images continue. Error/no-detection rows remain zero-scored in the original denominator; an incomplete run cannot enter accuracy merge, and CPU/failure runs cannot enter GPU timing rankings.
+- Added a sequential one-command research runner with an explicit temperature limit and a nonzero exit for partial/thermal-stop runs.
 
 ## Validation status
 
-| Model | Source | Local load | Real single image | Two-image batch | GPU observed | Status |
-|---|---|---:|---:|---:|---:|---|
-| MediaPipe Pose Heavy | Drive notebook + source adapter; 30,664,242-byte cached task file | Pass (0.10.35) | Pass, 17 points | Pass (2 outputs, first output matches) | No; Windows wheel reports GPU processing disabled | CPU smoke and full COCO/SyRIP runs completed |
-| MoveNet Thunder | Drive notebook + source adapter; 12,584,128-byte cached TFLite file | Failed: TensorFlow Lite runtime unavailable; 2.10.1 Windows wheel download (456 MB) was stopped after prolonged no-progress transfer | Not run | Not run | Not run | No inference; failure saved to model validation log |
-| RTMPose-M | Drive notebook ONNX Runtime CUDA flow; two cached ONNX files | Pass (rtmlib 0.0.15 + ONNX Runtime 1.19.2) | Pass, 17 points | Pass (2 outputs, first output matches) | No; ONNX Runtime reports CPU provider | CPU smoke passed; full set deliberately not run under thermal caution |
-| OpenPose COCO-18 | Drive Colab notebook; COCO-18 prototxt/caffemodel cached | Not run | Not run | Not run | Not run | Blocked: original notebook relies on cached Colab Ubuntu binary; no local adapter/build yet |
+| Model | Single image + batch two | GPU inference | Full COCO subset | Full SyRIP | Result |
+|---|---|---|---|---|---|
+| MediaPipe Pose Heavy | Pass; 17 points and matching first batch output | No. MediaPipe GPU task rejects WSL `llvmpipe`; CPU fallback used | Complete, CPU | Complete, CPU | AP 0.41765 / 0.73032 |
+| MoveNet Thunder | Pass; 17 points and matching first batch output | No. TensorFlow cannot load its GPU stack and TFLite GPU delegate library is absent; CPU/XNNPACK fallback used | Complete, CPU | Complete, CPU | AP 0.103 / 0.417 |
+| RTMPose-M + YOLOX-M | Pass; 17 points and matching first batch output | Yes; both ONNX sessions selected CUDAExecutionProvider | Complete, 921/921 | Complete, 100/100 | AP 0.77481 / 0.83417 |
+| YOLO11x-Pose | Pass; 17 points and matching first batch output | Yes; PyTorch CUDA on RTX 5060 | Stopped at 670/921 when temperature reached 71°C; not scored | Complete, 100/100 | SyRIP AP 0.75071; no COCO score |
+| OpenPose COCO-18 | No local adapter/runtime to execute the model | Not tested | Not run | Not run | Blocked; original notebooks, prototxt, and weights are preserved |
 
-The COCOeval implementation passed its perfect-prediction unit fixture and real-annotation oracle checks on both handoffs (921 COCO rows and 100 SyRIP rows; AP=1.0 by construction). MediaPipe CPU runs yielded COCO subset AP 0.41765 and SyRIP COCO-OKS AP 0.73032; these are not GPU results. MediaPipe and RTMPose each passed real single-image and two-image CPU smoke checks with 17 COCO keypoints and matching first outputs. RTMPose's full set was not run after the user's overheating caution. GPU temperature was 50 C, utilization 0%, and reported power 10.12 W during the final check. The local handoffs retain source index SHA-256 `ec067b4cda12ba7f57a038d1d27ee545b2c6954eb5740c997396777a4d295ccb` (921 rows) and `d5b807198d123a86b6fac15fb5f6913b8fd503dc537fb03c378b57246b2c6e64` (100 rows). Only paths changed; original CSVs and source index hashes are retained. Historical custom-metric outputs are preserved, but are not reinterpreted as COCOeval results. No paired Colab score/run record was found, so a numeric Colab-local delta is unavailable.
+All accuracy figures above use `cocodataset/cocoapi.COCOeval(iouType='keypoints')` defaults. COCO results are for the selected 921-image single-person subset, not the full COCO val2017 leaderboard. SyRIP uses the same COCO-OKS evaluator and is a custom-domain result. The merged complete-run table is `04_merged_results/merged_20261022T164221Z/benchmark_table.csv`; the paired cross-domain report and plots are under `05_analysis_results/analysis_20261022T164221Z/`. Partial YOLO COCO results are excluded from merge and scoring.
+
+Smoke logs are in `06_logs/model_validation_*.json`; environment diagnostics are in `06_logs/gpu_diagnostics_*.json`. At the end of the tests, GPU temperature was 49°C, utilization 0%, and memory use 0 MiB. During the YOLO COCO run the 70°C conservative threshold was crossed between periodic checks; the hard 75°C default was not reached, and the run stopped at 71°C with scoring disabled. Future one-click runs default to a 65°C cutoff. No matching official-metric Colab score pair was found, so there is no numerical Colab-to-local delta. Historical project-specific OKS/PCK results remain preserved and are not mixed with these COCOeval results.
 
 ## Remaining host-level requirement
 
-Installing the WSL2 optional feature/Ubuntu requires an administrator token. The approved DISM attempt returned Windows Error 740 (elevation required), and no Ubuntu distribution is installed. The current Python 3.9 is below the current PyTorch Windows minimum (3.10). MediaPipe and RTMPose therefore only received CPU smoke/full runs; MoveNet's Windows TensorFlow wheel transfer stalled; OpenPose still needs a local WSL2-compatible runtime/build. GPU was 49 C and idle at the latest check after the smoke tests; CPU thermal sensors were unavailable to this process. No long CPU full-data runs were started after the user's overheating caution. The local Git commit is independent of WSL. No remote URL is configured, so no GitHub push was attempted.
+OpenPose remains unexecuted: the preserved source calls a Colab-cached OpenPose binary and has no portable adapter/runtime. A CUDA 13 / SM 12.0 WSL build plus COCO-18-to-COCO-17 mapping is still required before it can be validated. The configured Git repository has no remote URL, so no GitHub push was possible; local commit status is reported separately.

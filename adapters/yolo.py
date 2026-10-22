@@ -12,7 +12,8 @@ class YOLO11xPose(BaseAdapter):
     def predict(self,row,profile):
         from PIL import Image
         started=perf_counter(); t=perf_counter(); rgb=np.asarray(Image.open(row['image_path']).convert('RGB')); decode=(perf_counter()-t)*1000
-        t=perf_counter(); result=self.model.predict(rgb,device=0,imgsz=640,half=False,conf=.001,verbose=False)[0]; inf=(perf_counter()-t)*1000; t=perf_counter()
+        # FP32 is Ultralytics' default; omit the deprecated `half` switch.
+        t=perf_counter(); result=self.model.predict(rgb,device=0,imgsz=640,conf=.001,verbose=False)[0]; inf=(perf_counter()-t)*1000; t=perf_counter()
         timing={'decode':decode,'preprocess':0.,'inference':inf,'postprocess':0.,'end_to_end':0.}
         if result.keypoints is None or len(result.keypoints.xy)==0:
             timing['postprocess']=(perf_counter()-t)*1000; timing['end_to_end']=(perf_counter()-started)*1000
