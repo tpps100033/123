@@ -1,8 +1,8 @@
 # InfantPose local result comparison
 
-Final merged results: `04_merged_results/merged_20261023T052914Z/benchmark_table.csv`
+Final merged results: `04_merged_results/merged_20261023T054218Z/benchmark_table.csv`
 
-Machine-generated paired analysis: `05_analysis_results/analysis_20261023T053000Z/`
+Machine-generated paired analysis: `05_analysis_results/analysis_20261023T054220Z/`
 
 All six models completed 921-image COCO single-person-subset and 100-image SyRIP runs. All accuracy scores use the official `cocodataset/cocoapi.COCOeval(iouType='keypoints')` evaluator with its default keypoint OKS sigmas and thresholds. COCO values describe the selected 921-image subset, not the full COCO val2017 leaderboard. SyRIP is a custom-domain dataset evaluated with the same COCO OKS implementation; its score is not a COCO leaderboard result.
 

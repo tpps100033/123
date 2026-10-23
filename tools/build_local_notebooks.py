@@ -11,8 +11,8 @@ def notebook(filename,title,markdown,cells,kernel='infantpose-rtmpose',display_n
     (OUT/filename).write_text(json.dumps(doc,ensure_ascii=False,indent=2),encoding='utf-8')
 
 boot="""from pathlib import Path
-ROOT = Path.cwd()
-assert (ROOT / 'config' / 'local.json').is_file(), 'Run JupyterLab from the InfantPose project root.'
+ROOT = next((path for path in (Path.cwd(), *Path.cwd().parents) if (path / 'config' / 'local.json').is_file()), None)
+assert ROOT is not None, 'Open this notebook within the InfantPose project tree.'
 print('Project:', ROOT)
 """
 notebook('00_Prepare_TwoDomain_Handoffs_local.ipynb','00｜本地資料與模型快取準備','此入口使用專案內的相對路徑，原始 Colab notebook 保存在 `../original/`。先將原始資料集與標註放到 `02_datasets/source_archives/`，再執行下方兩個步驟。評估資料數量與 COCO-17 對應不符時會停止。',[boot,"""import subprocess, sys
