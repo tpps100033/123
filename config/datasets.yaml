@@ -12,12 +12,3 @@ datasets:
     expected_samples: 100
     annotation_contract: coco17_verified_mapping
     metric: oks_pck10_coverage
-  sviro_child_i3_test53_coco12:
-    display_name: SVIRO BMW i3 child-only test subset
-    domain: child_synthetic_rgb
-    expected_samples: 53
-    annotation_contract: coco17_with_12_limb_labels_and_5_unlabelled_face_points
-    metric: cocoapi_keypoint_oks_child_subset
-    source: https://sviro.kl.dfki.de/
-    license: CC BY-NC-SA 4.0
-    note: Child-only test scenes; use official person boxes for area.

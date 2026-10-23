@@ -28,4 +28,4 @@ The COCO-format person bounding box and area are the tight rectangle enclosing t
 
 ## Archived experiment
 
-BabyPose is no longer part of the supported preparation, model validation, or research commands. The historical source notebook, annotations, model predictions, and exploratory comparison remain archived for provenance. `scripts/run_babypose_wsl.sh` is disabled. Completed image work covers COCO and SyRIP, with SVIRO as a supplementary synthetic vehicle-interior stress test. A real-child image benchmark is still outstanding; see [the dataset availability analysis](REAL_CHILD_DATASET_AVAILABILITY.md).
+BabyPose is no longer part of the supported preparation, model validation, or research commands. The historical source notebook, annotations, model predictions, and exploratory comparison remain archived for provenance. `scripts/run_babypose_wsl.sh` is disabled. Completed image work covers COCO and SyRIP. A real-child image benchmark is still outstanding; see [the dataset availability analysis](REAL_CHILD_DATASET_AVAILABILITY.md).

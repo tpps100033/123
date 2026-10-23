@@ -2,7 +2,7 @@
 
 ## Decision
 
-The project still needs a real-image child evaluation domain that is separate from both COCO and the infant SyRIP domain. The public sources checked for this migration do not currently provide one usable package that contains (1) real child images, (2) human body keypoints suitable as evaluation ground truth, and (3) downloadable image files. SVIRO is synthetic vehicle-interior imagery and is retained only as a supplementary synthetic-domain experiment. It must not be described as the real-child benchmark.
+The project still needs a real-image child evaluation domain that is separate from both COCO and the infant SyRIP domain. The public sources checked for this migration do not currently provide one usable package that contains (1) real child images, (2) human body keypoints suitable as evaluation ground truth, and (3) downloadable image files. SVIRO is synthetic vehicle-interior imagery and was removed from active runs and the paper package at the user's request. It is not the real-child benchmark.
 
 ## Candidate review
 
@@ -53,7 +53,7 @@ Until a usable real-child keypoint set is obtained, describe results as:
 
 - COCO: adult-dominant general human pose reference set.
 - SyRIP: infant domain.
-- SVIRO: supplementary synthetic child stress test, restricted to vehicle interiors.
+- SVIRO: excluded from active runs and paper package at the user's request; synthetic vehicle-interior imagery.
 - Real-child image benchmark: not yet available from the public candidates reviewed here; do not report a score for it.
 
 Potential sources: [CGPS/ChildGait](https://www.kaggle.com/competitions/cvpr-2026-the-first-ai-children-challenge/data), [ARAN](https://aranchilddata.uvt.nl/), and [On the Estimation of Children's Poses](https://iris.cnr.it/handle/20.500.14243/371177). The CGPS challenge page states that raw video is withheld. The ARAN project describes 2,048 images from 512 children aged 16–98 months but does not provide pose-keypoint labels. The 2017 child-pose paper describes an annotated dataset but its repository page does not expose a downloadable image/annotation archive.

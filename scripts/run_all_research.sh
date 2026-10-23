@@ -7,11 +7,6 @@ mkdir -p "$ROOT/06_logs"
 LOG="$ROOT/06_logs/research_$(date -u +%Y%m%dT%H%M%SZ).log"
 exec > >(tee -a "$LOG") 2>&1
 printf 'Starting full local research run. GPU thermal cutoff: %s C. Log: %s\n' "$THERMAL_LIMIT" "$LOG"
-[[ -f "$ROOT/02_datasets/canonical/sviro_child_i3_test53_coco12/dataset_manifest.json" ]] || {
-  printf 'Prepare the SVIRO BMW i3 supplementary set on Windows first: py -3.9 scripts/prepare_sviro_child.py\n' >&2
-  exit 2
-}
-
 run_model() {
   local model="$1" env_name="$2" dataset
   local python="$ENV_ROOT/$env_name/bin/python"
@@ -22,7 +17,7 @@ run_model() {
     export INFANTPOSE_OPENPOSE_MODEL_FOLDER="$cache_root/src/openpose/models"
     export LD_LIBRARY_PATH="$cache_root/build/openpose-cuda-final/src/openpose:$cache_root/build/openpose-cuda-final/caffe/lib:$cache_root/build/cuda-toolkit-13.2-shim/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   fi
-  for dataset in coco_singleperson_val2017 syrip_test100 sviro_child_i3_test53_coco12; do
+  for dataset in coco_singleperson_val2017 syrip_test100; do
     INFANTPOSE_MAX_GPU_TEMP_C="$THERMAL_LIMIT" "$python" "$ROOT/scripts/run_research.py" --model "$model" --dataset "$dataset"
   done
 }

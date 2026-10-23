@@ -18,20 +18,6 @@
       "annotation": "02_datasets/person_keypoints_validate_infant_test100.json",
       "expected_samples": 100,
       "mapping": "syrip_to_coco17_v1"
-    },
-    "sviro_child_i3_test53_coco12": {
-      "source_kind": "sviro_http_range",
-      "source": "https://sviro.kl.dfki.de/",
-      "annotation": "02_datasets/person_keypoints_sviro_child_i3_test53_coco12.json",
-      "expected_samples": 53,
-      "mapping": "sviro_i3_child_only_official_person_box_coco12_v1"
-    },
-    "sviro_children_allcars_test710_coco12": {
-      "source_kind": "sviro_http_range",
-      "source": "https://sviro.kl.dfki.de/",
-      "annotation": "02_datasets/person_keypoints_sviro_children_allcars_test710_coco12.json",
-      "expected_samples": 710,
-      "mapping": "sviro_allcars_child_only_official_person_box_coco12_v1"
     }
   },
   "profile": "fair_reference"
