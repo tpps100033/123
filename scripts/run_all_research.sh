@@ -17,7 +17,7 @@ run_model() {
     export INFANTPOSE_OPENPOSE_MODEL_FOLDER="$cache_root/src/openpose/models"
     export LD_LIBRARY_PATH="$cache_root/build/openpose-cuda-final/src/openpose:$cache_root/build/openpose-cuda-final/caffe/lib:$cache_root/build/cuda-toolkit-13.2-shim/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
   fi
-  for dataset in coco_singleperson_val2017 syrip_test100; do
+  for dataset in coco_singleperson_val2017 syrip_test100 coco_unihuman_child_val134; do
     INFANTPOSE_MAX_GPU_TEMP_C="$THERMAL_LIMIT" "$python" "$ROOT/scripts/run_research.py" --model "$model" --dataset "$dataset"
   done
 }

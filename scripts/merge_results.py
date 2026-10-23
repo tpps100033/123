@@ -5,14 +5,15 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 EXPECTED={'batch_size':1,'warmup_images':10,'precision':'fp32','amp':False,'compile':False,'quantization':False,'tensor_rt':False,'rankable_across_models':True}
 EXPECTED_MODELS={'mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18'}
-EXPECTED_DATASETS={'coco_singleperson_val2017','syrip_test100'}
+EXPECTED_DATASETS={'coco_singleperson_val2017','syrip_test100','coco_unihuman_child_val134'}
+EXPECTED_COUNTS={'coco_singleperson_val2017':921,'syrip_test100':100,'coco_unihuman_child_val134':134}
 
 def main():
     runs=[]
     for manifest_path in (ROOT/'03_model_raw_outputs').glob('*/*/fair_reference/*/run_manifest.json'):
         m=json.loads(manifest_path.read_text(encoding='utf-8'))
         if m.get('profile')!='fair_reference' or m.get('protocol')!=EXPECTED or m.get('profile_id')!='fair_reference_v1' or not m.get('metric_complete'): continue
-        required=921 if m.get('dataset_id')=='coco_singleperson_val2017' else 100 if m.get('dataset_id')=='syrip_test100' else None
+        required=EXPECTED_COUNTS.get(m.get('dataset_id'))
         if required is None or m.get('counts',{}).get('input')!=required: continue
         runs.append((manifest_path,m))
     if not runs: raise RuntimeError('No complete, comparable fair_reference runs found.')

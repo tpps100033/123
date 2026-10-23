@@ -12,3 +12,14 @@ datasets:
     expected_samples: 100
     annotation_contract: coco17_verified_mapping
     metric: oks_pck10_coverage
+  coco_unihuman_child_val134:
+    display_name: COCO-UniHuman apparent-age child subset (val134)
+    domain: child_real_rgb_apparent_age
+    expected_samples: 134
+    annotation_contract: coco17_identity_mapping_person_crops
+    metric: cocoapi_keypoint_oks
+    source: https://github.com/lishuhuai527/COCO-UniHuman
+    source_split: COCO-UniHuman v2 val / COCO val2017
+    apparent_age_years: [3, 17]
+    license: research-only; COCO-UniHuman annotations CC BY 4.0; images remain subject to source image terms
+    note: Excludes COCO evaluation IDs and byte-identical source images; one child crop per unique source image hash.

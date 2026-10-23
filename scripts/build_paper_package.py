@@ -19,6 +19,7 @@ MODELS = (
 DATASETS = {
     "coco_singleperson_val2017": (921, "COCO single-person val2017 subset"),
     "syrip_test100": (100, "SyRIP infant test100"),
+    "coco_unihuman_child_val134": (134, "COCO-UniHuman apparent-age child val134 crops"),
 }
 DISPLAY = {
     "mediapipe_pose_heavy": "MediaPipe Pose Heavy", "movenet_thunder": "MoveNet Thunder",
@@ -117,22 +118,29 @@ def copy_source_snapshot(stage: Path) -> None:
 
 
 def add_supporting_material(stage: Path) -> None:
+    merged_dirs=sorted((ROOT/"04_merged_results").glob("merged_*"))
+    analysis_dirs=sorted((ROOT/"05_analysis_results").glob("analysis_*"))
+    if not merged_dirs or not analysis_dirs:
+        raise FileNotFoundError("Three-domain merged results and analysis are required before packaging.")
+    merged=merged_dirs[-1]
+    analysis=analysis_dirs[-1]
     files = {
         "README.md": "README.md",
         "MIGRATION_REPORT.md": "MIGRATION_REPORT.md",
         "PRD_v4.md": "PRD_v4.md",
-        "reports/result_comparison.md": "results/result_comparison.md",
         "docs/REAL_CHILD_DATASET_AVAILABILITY.md": "data_provenance/real_child_dataset_availability.md",
-        "04_merged_results/merged_20261023T054218Z/benchmark_table.csv": "results/coco_syrip_official_cocoeval_table.csv",
-        "04_merged_results/merged_20261023T054218Z/merge_manifest.json": "results/coco_syrip_merge_manifest.json",
-        "05_analysis_results/analysis_20261023T054220Z/analysis_manifest.json": "results/analysis_manifest.json",
-        "05_analysis_results/analysis_20261023T054220Z/comparison_report.md": "results/coco_syrip_analysis.md",
-        "05_analysis_results/analysis_20261023T054220Z/cross_domain_summary.csv": "results/coco_syrip_cross_domain_summary.csv",
-        "05_analysis_results/analysis_20261023T054220Z/latency_by_model_domain.csv": "results/coco_syrip_latency.csv",
-        "05_analysis_results/analysis_20261023T054220Z/cross_domain_keypoint_ap.png": "figures/coco_syrip_cross_domain_ap.png",
-        "05_analysis_results/analysis_20261023T054220Z/latency_median_two_domains.png": "figures/coco_syrip_median_latency.png",
+        str(merged/"benchmark_table.csv"): "results/official_cocoeval_table.csv",
+        str(merged/"merge_manifest.json"): "results/merge_manifest.json",
+        str(analysis/"analysis_manifest.json"): "results/analysis_manifest.json",
+        str(analysis/"comparison_report.md"): "results/result_comparison.md",
+        str(analysis/"three_domain_summary.csv"): "results/three_domain_summary.csv",
+        str(analysis/"latency_by_model_domain.csv"): "results/latency_by_model_domain.csv",
+        str(analysis/"three_domain_keypoint_ap.png"): "figures/three_domain_keypoint_ap.png",
+        str(analysis/"latency_median_three_domains.png"): "figures/latency_median_three_domains.png",
         "02_datasets/person_keypoints_val2017_singleperson.json": "data_provenance/coco/person_keypoints_val2017_singleperson.json",
         "02_datasets/person_keypoints_validate_infant_test100.json": "data_provenance/syrip/person_keypoints_validate_infant_test100.json",
+        "02_datasets/person_keypoints_coco_unihuman_child_val134.json": "data_provenance/child/person_keypoints_coco_unihuman_child_val134.json",
+        "02_datasets/canonical/coco_unihuman_child_val134/selection_manifest.json": "data_provenance/child/selection_manifest.json",
     }
     for src_rel, dst_rel in files.items():
         src = ROOT / src_rel
@@ -155,6 +163,7 @@ Use the exact dataset/model version and locally recorded source metadata in each
 - COCO: T.-Y. Lin et al., “Microsoft COCO: Common Objects in Context,” ECCV 2014. https://arxiv.org/abs/1405.0312. Dataset home and terms: https://cocodataset.org/
 - SyRIP: X. Huang, N. Fu, S. Liu, and S. Ostadabbas, “Invariant Representation Learning for Infant Pose Estimation with Small Data,” arXiv:2010.06100 (2020). https://arxiv.org/abs/2010.06100. See the original project for data access and terms: https://github.com/ostadabbas/Infant-Pose-Estimation
 - H3D: L. Bourdev and J. Malik, “Poselets: Body Part Detectors Trained Using 3D Human Pose Annotations,” ICCV 2009. Dataset page: https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/shape/h3d/. The public archive contains directly mappable body keypoints, but the downloaded XML records contain 70 `baby` instances and no `child` category, so H3D is not used as the child evaluation domain.
+- COCO-UniHuman: S. Liu et al., “COCO-UniHuman: Scaling Unified Human Representation Learning,” ECCV 2024. Code, data format, and research license: https://github.com/lishuhuai527/COCO-UniHuman. The child cohort uses its manual apparent-age annotations on COCO val2017 images. COCO-17 keypoints are retained directly; ages are not verified birth ages, and the source image IDs are excluded from this project's COCO subset.
 
 ## Model and metric references
 
@@ -166,13 +175,13 @@ Use the exact dataset/model version and locally recorded source metadata in each
 - YOLO11: cite the exact Ultralytics software release/checkpoint recorded in the run manifest; the project states that it has no formal YOLO11 research paper. https://docs.ultralytics.com/models/yolo11/
 - Metrics: official COCO keypoint evaluation API. https://github.com/cocodataset/cocoapi and https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py
 
-The benchmark scores are research results, not clinical validation. COCO is a selected 921-image single-person subset, and SyRIP is a 100-image infant subset. No public candidate reviewed for this bundle provides both real child images and independent body-keypoint ground truth; the search and mapping analysis are included in `data_provenance/real_child_dataset_availability.md`. No numerical comparison to the original Colab metric is supported because the original project used nonstandard metrics.
+The benchmark scores are research results, not clinical validation. COCO is a selected 921-image single-person subset, SyRIP is a 100-image infant subset, and the child cohort contains 134 COCO-UniHuman apparent-age person crops. Child source image IDs do not overlap the selected COCO subset, though both cohorts use COCO val2017 imagery. No numerical comparison to the original Colab metric is supported because the original project used nonstandard metrics.
 """
     (stage / "CITATIONS_AND_RIGHTS.md").write_text(citations, encoding="utf-8")
 
     readme = """# InfantPose paper-writing package
 
-Generated from the local research project. The bundle contains the frozen COCO and SyRIP results, 12 complete run packages with per-image predictions and metrics; official COCOeval summaries; selected dataset annotations and hashed sample indexes; validation records; reports, figures, source, notebooks, and citation/rights notes. It documents that a suitable public real-child image benchmark remains unavailable among the sources reviewed.
+Generated from the local research project. The bundle contains the frozen COCO, SyRIP, and COCO-UniHuman apparent-age child results, 18 complete run packages with per-image predictions and metrics; official COCOeval summaries; selected dataset annotations and hashed sample indexes; validation records; reports, figures, source, notebooks, and citation/rights notes. Child images are person crops from COCO val2017 and exclude the 921 images in the project's COCO benchmark. The age labels are apparent-age annotations, not verified birth ages.
 
 ## Start here
 
@@ -184,7 +193,7 @@ Generated from the local research project. The bundle contains the frozen COCO a
 
 ## Scope and interpretation
 
-The completed image experiments compare six pretrained pose systems on COCO single-person val2017 (921 images) and SyRIP infant Test100. All score summaries use official `pycocotools.COCOeval(iouType='keypoints')` defaults. A separate real-child image benchmark is a documented outstanding data requirement; this bundle does not claim to have completed one.
+The completed image experiments compare six pretrained pose systems on COCO single-person val2017 (921 images), SyRIP infant Test100, and 134 child person crops from COCO-UniHuman/COCO val2017. The child cohort has manual apparent-age labels from 3 to 17 years and is disjoint by source image from the project's 921-image COCO subset. It reuses the COCO image source and is not an independent image collection; age is apparent rather than verified chronological age. All score summaries use official `pycocotools.COCOeval(iouType='keypoints')` defaults.
 
 BabyPose is intentionally excluded. Historical Colab project-defined scores are not combined with COCOeval. The COCO table is a 921-image subset and must not be described as the full COCO val2017 leaderboard.
 

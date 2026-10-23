@@ -1,0 +1,2 @@
+# Isolated Windows-only image cropping environment for COCO-UniHuman preparation.
+Pillow==11.3.0

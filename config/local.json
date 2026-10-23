@@ -18,6 +18,12 @@
       "annotation": "02_datasets/person_keypoints_validate_infant_test100.json",
       "expected_samples": 100,
       "mapping": "syrip_to_coco17_v1"
+    },
+    "coco_unihuman_child_val134": {
+      "raw": "02_datasets/canonical/coco_unihuman_child_val134/raw",
+      "annotation": "02_datasets/person_keypoints_coco_unihuman_child_val134.json",
+      "expected_samples": 134,
+      "mapping": "cocounihuman_apparent_age_3_17_crop_coco17_v1"
     }
   },
   "profile": "fair_reference"
