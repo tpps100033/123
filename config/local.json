@@ -18,6 +18,13 @@
       "annotation": "02_datasets/person_keypoints_validate_infant_test100.json",
       "expected_samples": 100,
       "mapping": "syrip_to_coco17_v1"
+    },
+    "babypose_test160_limb12": {
+      "source_kind": "zenodo_http_range",
+      "source_doi": "10.5281/zenodo.5336836",
+      "annotation": "02_datasets/person_keypoints_babypose_test160_limb12.json",
+      "expected_samples": 160,
+      "mapping": "babypose_v2_limb12_to_coco17_v2"
     }
   },
   "profile": "fair_reference"

@@ -129,7 +129,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     provenance=adapter.provenance()
     if provenance.get('gpu_peak'):
         env['gpu_memory']['model_peak']=provenance['gpu_peak']
-    expected=921 if manifest['dataset_id']=='coco_singleperson_val2017' else 100 if manifest['dataset_id']=='syrip_test100' else None
+    expected=config['datasets'][manifest['dataset_id']]['expected_samples']
     metric_complete=load_error is None and evaluation_error is None and thermal_stop is None and len(predictions)==len(rows) and expected is not None and len(rows)==expected and counts['errors']==0
     runtime_device=str(provenance.get('runtime_device','')).lower()
     timing_comparable=metric_complete and runtime_device in ('gpu','cuda','cuda:0','gpu_delegate')

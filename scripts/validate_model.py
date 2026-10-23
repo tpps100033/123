@@ -7,7 +7,7 @@ from benchmark_core.data import load_handoff
 from scripts.run_research import make_adapter
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100']); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100','babypose_test160_limb12']); a=p.parse_args()
     result={'model_id':a.model,'dataset_id':a.dataset,'started_utc':datetime.now(timezone.utc).isoformat(),'status':'failed','single_image':None,'batch_two':None,'gpu_used':False}
     try:
         adapter=make_adapter(a.model); handoff,rows=load_handoff(ROOT/'02_datasets'/'canonical'/a.dataset)
@@ -42,7 +42,7 @@ def main():
         if 'adapter' in locals() and hasattr(adapter,'close'):
             try: adapter.close()
             except Exception as exc: result['close_error']=f'{type(exc).__name__}: {exc}'
-    log=ROOT/'06_logs'; log.mkdir(exist_ok=True); out=log/f"model_validation_{a.model}.json"
+    log=ROOT/'06_logs'; log.mkdir(exist_ok=True); out=log/f"model_validation_{a.model}_{a.dataset}.json"
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8'); print(json.dumps(result,ensure_ascii=False,indent=2))
     if result['status'] not in {'inference_pass','inference_pass_cpu_only'}: raise SystemExit(1)
 

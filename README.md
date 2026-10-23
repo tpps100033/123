@@ -8,6 +8,12 @@ The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRA
 
 The Sapiens checkpoint was found in the local `姿態判定` Downloads folder and copied into the ignored WSL model cache. Both original 4,676,154,239-byte downloads remain untouched. Sapiens passed single-image and batch inference on CUDA and completed COCO 921/921 and SyRIP 100/100.
 
+## Additional labelled infant dataset
+
+The supplementary [BabyPose protocol](docs/BABYPOSE.md) uses 160 annotated 8-bit depth frames, 10 per patient across 16 infants, selected deterministically from the v2 annotations' reconstructed test partition. Twelve limb keypoints map into COCO's 17 slots and five face points remain unlabelled. Run `python scripts/prepare_babypose.py` to fetch only the needed ZIP entries from [Zenodo v2](https://doi.org/10.5281/zenodo.5336836) and [v1](https://doi.org/10.5281/zenodo.3891404). Run a model with `python scripts/run_research.py --model <model> --dataset babypose_test160_limb12` from its isolated WSL environment. BabyPose's 12-point subset AP is reported separately from full 17-point COCO/SyRIP AP.
+
+All six models have now completed BabyPose 160/160 with recorded GPU/CPU devices and no thermal stop. See [the BabyPose result report](reports/babypose_comparison.md). This depth-domain stress test gave AP=0 for all six, so the report includes detection coverage and an evaluation sanity check rather than claiming a meaningful AP ranking.
+
 ## Setup
 
 1. On Windows, run `powershell -ExecutionPolicy Bypass -File .\scripts\check_environment.ps1`.
@@ -18,7 +24,7 @@ The Sapiens checkpoint was found in the local `姿態判定` Downloads folder an
 6. Run `python scripts/gpu_diagnostics.py` inside each kernel. An import by itself is not a GPU validation: the diagnostic runs a CUDA matrix operation and records the actual framework device/provider.
 7. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and available model weights have already been imported from the user-provided Drive project. `scripts/prepare_datasets.py` verifies and reuses the 921/100-row handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. The Sapiens checkpoint belongs in the ignored WSL cache path listed above; never commit a real token or checkpoint.
 8. Run `python scripts/validate_model.py --model <model> --dataset coco_singleperson_val2017` for an actual model smoke test. Then run an individual dataset with `python scripts/run_research.py --model <model> --dataset <dataset>`. GPU runs stop at `INFANTPOSE_MAX_GPU_TEMP_C` (85°C by default) and check temperature after every image. A thermally stopped run is never scored; per-image prediction checkpoints remain available if a native runtime aborts.
-9. Run local notebooks `90` and `91` or `scripts/merge_results.py` and `scripts/analyse_results.py` to merge and analyze complete results. Formal runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping.
+9. Run local notebooks `90` and `91` or `scripts/merge_results.py` and `scripts/analyse_results.py` to merge and analyze the original complete results. Those frozen runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping. The supplementary BabyPose handoff requires 160 rows and has its own comparison report.
 
 See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for WSL, CUDA, OpenPose memory, and thermal guidance.
 
@@ -38,6 +44,8 @@ python scripts/run_research.py --model mediapipe_pose_heavy --dataset coco_singl
 bash scripts/run_all_research.sh
 python scripts/merge_results.py
 python scripts/analyse_results.py
+python scripts/compare_babypose.py
+bash scripts/run_babypose_wsl.sh
 python tools/build_local_notebooks.py
 ```
 
