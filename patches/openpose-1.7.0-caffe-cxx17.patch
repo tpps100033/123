@@ -1,0 +1,30 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 905cd7d8..d8bc4086 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -53 +53 @@ if(UNIX OR APPLE)
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -std=c++11")
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall -std=c++17")
+diff --git a/src/caffe/common.cpp b/src/caffe/common.cpp
+index 4f6f9bcc..241bf4f7 100644
+--- a/src/caffe/common.cpp
++++ b/src/caffe/common.cpp
+@@ -193,0 +194 @@ void Caffe::DeviceQuery() {
++#if CUDART_VERSION < 13000
+@@ -194,0 +196 @@ void Caffe::DeviceQuery() {
++#endif
+@@ -196,0 +199 @@ void Caffe::DeviceQuery() {
++#if CUDART_VERSION < 13000
+@@ -198,0 +202 @@ void Caffe::DeviceQuery() {
++#endif
+@@ -199,0 +204 @@ void Caffe::DeviceQuery() {
++#if CUDART_VERSION < 13000
+@@ -201,0 +207 @@ void Caffe::DeviceQuery() {
++#endif
+diff --git a/src/caffe/util/io.cpp b/src/caffe/util/io.cpp
+index 5295d9dd..f71553c9 100644
+--- a/src/caffe/util/io.cpp
++++ b/src/caffe/util/io.cpp
+@@ -57 +57 @@ bool ReadProtoFromBinaryFile(const char* filename, Message* proto) {
+-  coded_input->SetTotalBytesLimit(kProtoReadBytesLimit, 536870912);
++  coded_input->SetTotalBytesLimit(kProtoReadBytesLimit);

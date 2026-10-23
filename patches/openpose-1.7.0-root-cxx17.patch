@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2328e66..87ae108 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -101,2 +101,2 @@ elseif (UNIX)
+-  # Turn on C++11
+-  add_definitions(-std=c++11)
++  # CUDA 13 CCCL requires C++17.
++  add_definitions(-std=c++17)
+@@ -105,2 +105,2 @@ elseif (APPLE)
+-  # Turn on C++11
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
++  # CUDA 13 CCCL requires C++17.
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+@@ -509 +509 @@ if (UNIX OR APPLE)
+-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++14") # Thrust library requires C++14 for CUDA >= 11
++    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++17") # CUDA 13 CCCL requires C++17

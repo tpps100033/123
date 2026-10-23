@@ -47,9 +47,11 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     bad={k:(protocol.get(k),v) for k,v in FAIR_REFERENCE.items() if protocol.get(k)!=v}
     if bad: raise RuntimeError(f'fair_reference 協定被更動：{bad}')
     manifest, rows=load_handoff(handoff_root); run_id=f'{adapter.model_id}_{manifest["dataset_id"]}_{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}_{uuid.uuid4().hex[:6]}'
+    out=Path(output_root)/adapter.model_id/manifest['dataset_id']/profile/run_id; out.mkdir(parents=True,exist_ok=True)
+    partial_predictions=out/'predictions.partial.jsonl'; partial_predictions.write_text('',encoding='utf-8')
     load_started=perf_counter(); load_error=None
-    thermal_limit=int(os.environ.get('INFANTPOSE_MAX_GPU_TEMP_C','75'))
-    thermal_check_interval=max(1,int(os.environ.get('INFANTPOSE_TEMP_CHECK_INTERVAL','5')))
+    thermal_limit=int(os.environ.get('INFANTPOSE_MAX_GPU_TEMP_C','85'))
+    thermal_check_interval=max(1,int(os.environ.get('INFANTPOSE_TEMP_CHECK_INTERVAL','1')))
     thermal_stop=None
     try:
         adapter.load(profile)
@@ -80,6 +82,14 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
             except Exception: pass
             p=Prediction(row['sample_id'],manifest['dataset_id'],adapter.model_id,run_id,'model_error',error_code=type(e).__name__,native={'message':str(e)[:1000]},timings_ms={'decode':0.0,'preprocess':0.0,'inference':0.0,'postprocess':0.0,'end_to_end':0.0})
         p.run_id=run_id; p.validate(); predictions.append(p.record())
+        with partial_predictions.open('a',encoding='utf-8') as partial_file:
+            partial_file.write(json.dumps(predictions[-1],ensure_ascii=False)+'\n')
+            partial_file.flush()
+        if len(predictions)%20==0:
+            print(f"[{adapter.model_id}/{manifest['dataset_id']}] processed {len(predictions)}/{len(rows)} images; GPU temperature={_gpu_temperature_c()} C",flush=True)
+    if hasattr(adapter,'close'):
+        try: adapter.close()
+        except Exception as e: logging.getLogger(__name__).exception('Adapter close failed: %s',e)
     timing=[p.get('timings_ms',{}).get('end_to_end') for p in predictions]; timing=[x for x in timing if x is not None]
     evaluation_error=None; metric_rows=[]
     try:
@@ -95,7 +105,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
         summary={'metric_protocol':'cocodataset/cocoapi.COCOeval(iouType=keypoints)','evaluation_status':'failed','evaluation_error':evaluation_error}
         metric_rows=[{'sample_id':p['sample_id'],'image_id':next(row.get('image_id',row['sample_id']) for row in rows if row['sample_id']==p['sample_id']),'prediction_status':p['status'],'included_as_detection':False,'error_code':p.get('error_code')} for p in predictions]
     summary['latency_ms']={'n':len(timing),'mean':sum(timing)/len(timing) if timing else None,'median':statistics.median(timing) if timing else None,'p95':sorted(timing)[max(0,int(.95*len(timing))-1)] if timing else None}
-    out=Path(output_root)/adapter.model_id/manifest['dataset_id']/profile/run_id; out.mkdir(parents=True)
+    out.mkdir(parents=True,exist_ok=True)
     env={'platform':platform.platform(),'python':platform.python_version(),'gpu_memory':_gpu_memory_snapshot()}
     try:
         import torch
@@ -110,6 +120,8 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     except Exception: env.update(cuda_available=False,gpu=None)
     counts={'input':len(rows),'ok':len([p for p in predictions if p['status']=='ok']),'no_detection':len([p for p in predictions if p['status']=='no_detection']),'errors':len([p for p in predictions if p['status'] in ('model_error','input_error','mapping_error')])}
     provenance=adapter.provenance()
+    if provenance.get('gpu_peak'):
+        env['gpu_memory']['model_peak']=provenance['gpu_peak']
     expected=921 if manifest['dataset_id']=='coco_singleperson_val2017' else 100 if manifest['dataset_id']=='syrip_test100' else None
     metric_complete=load_error is None and evaluation_error is None and thermal_stop is None and len(predictions)==len(rows) and expected is not None and len(rows)==expected and counts['errors']==0
     runtime_device=str(provenance.get('runtime_device','')).lower()
@@ -118,6 +130,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     rm.update({'data_handoff_hash':manifest['index_sha256'],'weight_source':provenance.get('weight_source'),'metric_complete':metric_complete,'timing_comparability':timing_comparable,'fair_ranking_eligible':timing_comparable,'timing_scope':'decode + preprocessing + inference + postprocessing','warmup':{'images':10,'attempted':min(10,len(rows)),'excluded_from_metrics':True,'errors':getattr(adapter,'warmup_errors',[])},'model_load_ms':load_ms,'model_load_error':None if load_error is None else type(load_error).__name__,'thermal_stop':thermal_stop,'thermal_limit_c':thermal_limit,'thermal_check_interval_images':thermal_check_interval,'processed_images':len(predictions),'profile_id':'fair_reference_v1'})
     rm.update({'evaluation_error':evaluation_error,'metric_protocol':summary.get('metric_protocol'),'metric_protocol_version':summary.get('metric_protocol_version')})
     (out/'run_manifest.json').write_text(json.dumps(rm,indent=2),encoding='utf-8'); _write_jsonl(out/'predictions.jsonl',predictions); _write_jsonl(out/'metrics.jsonl',metric_rows)
+    partial_predictions.unlink(missing_ok=True)
     log_root=Path(output_root).parent/'06_logs'; log_root.mkdir(parents=True,exist_ok=True)
     with (log_root/'runs.jsonl').open('a',encoding='utf-8') as f: f.write(json.dumps({'run_id':run_id,'model_id':adapter.model_id,'dataset_id':manifest['dataset_id'],'path':str(out),'counts':rm['counts'],'timing':summary,'gpu_memory':env.get('gpu_memory'),'model_load_error':rm['model_load_error']},ensure_ascii=False)+'\n')
     return out

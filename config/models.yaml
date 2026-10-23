@@ -15,3 +15,7 @@ models:
     family: Ultralytics
     adapter: yolo
     output_mapping: coco17_identity
+  openpose_coco18:
+    family: OpenPose 1.7.0
+    adapter: openpose
+    output_mapping: openpose18_to_coco17_paf_v1

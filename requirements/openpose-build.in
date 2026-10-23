@@ -1,0 +1,2 @@
+cmake==3.31.10
+cuda-toolkit[cccl,crt,cublas,cudart,curand,nvcc,nvrtc,nvvm]==13.2.1

@@ -35,4 +35,5 @@ install_env mediapipe mediapipe.in
 install_env movenet movenet.in
 install_env rtmpose rtmpose.in
 install_env yolo yolo.in
+install_env openpose openpose.in
 echo "Created isolated model kernels under $ENV_ROOT. Run ../scripts/gpu_diagnostics.py in each kernel and keep the generated lock files with the environment report."

@@ -4,17 +4,21 @@ This project keeps the Colab research artifacts intact and adds local WSL2 entry
 
 ## Current state
 
-The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M and YOLO11x-Pose passed real CUDA inference smoke checks; both completed both formal datasets. YOLO's COCO subset AP is 0.72192 with ASUS V16 Full Speed fan mode and an 85°C stop limit. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. OpenPose remains blocked pending a compatible local runtime. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
+The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). RTMPose-M, YOLO11x-Pose, and OpenPose passed real CUDA inference smoke checks and completed both formal datasets. OpenPose uses its official CUDA/Caffe runtime at fixed 480×368 input resolution; its COCO subset AP is 0.58854 and SyRIP AP is 0.47656. The 85°C stop limit was not reached. YOLO's COCO subset AP is 0.72192. MediaPipe and MoveNet pass CPU inference but their GPU runtimes are unavailable in this WSL setup. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md) for evidence and result details.
 
 ## Setup
 
 1. On Windows, run `powershell -ExecutionPolicy Bypass -File .\scripts\check_environment.ps1`.
 2. Install WSL2 and Ubuntu if the check reports that no distribution is installed. This changes Windows optional features and may require administrator approval and a reboot. The existing Windows NVIDIA driver is used by WSL; do not install a Linux NVIDIA display driver inside Ubuntu.
-3. In Ubuntu 24.04, run `bash scripts/setup_wsl.sh` from this project directory. It creates isolated MediaPipe, MoveNet, RTMPose, and YOLO virtual environments under `~/.local/share/infantpose/venvs/` on WSL's Linux filesystem, installs `pycocotools` in each for official evaluation, registers one kernel per environment, and records resolved package versions under `requirements/locks/`. The setup enforces `PIP_REQUIRE_VIRTUALENV` and never installs model packages into global or Windows Python.
-4. Run `python scripts/gpu_diagnostics.py` inside each kernel. An import by itself is not a GPU validation: the diagnostic runs a CUDA matrix operation and records the actual framework device/provider.
-5. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and four Python-model weights have already been imported from the five user-provided ZIP parts. `scripts/prepare_datasets.py` verifies and reuses the 921/100-row handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. Set `HF_TOKEN` only if separately authorized for gated Sapiens downloads; never commit a real token.
-6. Run `python scripts/validate_model.py --model <model> --dataset coco_singleperson_val2017` for an actual model smoke test. Then run an individual dataset with `python scripts/run_research.py --model <model> --dataset <dataset>`. GPU runs stop at `INFANTPOSE_MAX_GPU_TEMP_C` (75°C by default); set it lower for a conservative run. A thermally stopped run is never scored.
-7. Run local notebooks `90` and `91` to merge and analyze complete results. Formal runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping.
+3. In Ubuntu 24.04, install OpenPose's native build headers once: `sudo apt-get install libprotobuf-dev protobuf-compiler libgoogle-glog-dev libgflags-dev libopencv-dev libboost-all-dev libhdf5-dev libatlas-base-dev libopenblas-dev libeigen3-dev libgoogle-perftools-dev libtbb-dev`.
+4. Run `bash scripts/setup_wsl.sh` from this project directory. It creates isolated MediaPipe, MoveNet, RTMPose, YOLO, and OpenPose runtime environments under `~/.local/share/infantpose/venvs/`, installs `pycocotools` in each for official evaluation, registers one kernel per environment, and records resolved package versions under `requirements/locks/`. The setup enforces `PIP_REQUIRE_VIRTUALENV` and never installs Python model packages into global or Windows Python.
+5. Run `bash scripts/build_openpose_cuda.sh` to build official OpenPose v1.7.0 plus its Python CUDA extension in the isolated WSL cache. The script pins CUDA Toolkit 13.2.1 and pybind11 v2.13.6, targets `sm_120`, checks the cached weight hash, applies the recorded CUDA 13 compatibility patches, and limits compilation to two jobs by default.
+6. Run `python scripts/gpu_diagnostics.py` inside each kernel. An import by itself is not a GPU validation: the diagnostic runs a CUDA matrix operation and records the actual framework device/provider.
+7. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and cached model weights have already been imported from the five user-provided ZIP parts. `scripts/prepare_datasets.py` verifies and reuses the 921/100-row handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. Set `HF_TOKEN` only if separately authorized for gated Sapiens downloads; never commit a real token.
+8. Run `python scripts/validate_model.py --model <model> --dataset coco_singleperson_val2017` for an actual model smoke test. Then run an individual dataset with `python scripts/run_research.py --model <model> --dataset <dataset>`. GPU runs stop at `INFANTPOSE_MAX_GPU_TEMP_C` (85°C by default) and check temperature after every image. A thermally stopped run is never scored; per-image prediction checkpoints remain available if a native runtime aborts.
+9. Run local notebooks `90` and `91` or `scripts/merge_results.py` and `scripts/analyse_results.py` to merge and analyze complete results. Formal runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping.
+
+See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for WSL, CUDA, OpenPose memory, and thermal guidance.
 
 Launch JupyterLab from the project root with the environment activated, then open `notebooks/local/`. Original Colab notebooks are kept under `notebooks/original/` and excluded from Git; local entry points are generated by `python tools/build_local_notebooks.py`.
 
@@ -22,6 +26,7 @@ Launch JupyterLab from the project root with the environment activated, then ope
 
 ```bash
 bash scripts/setup_wsl.sh
+bash scripts/build_openpose_cuda.sh
 python scripts/gpu_diagnostics.py
 python scripts/prepare_datasets.py
 python scripts/prepare_model_assets.py
@@ -35,7 +40,7 @@ python tools/build_local_notebooks.py
 
 Each model runtime has its own environment because TensorFlow, MediaPipe, ONNX Runtime, and PyTorch stacks can constrain conflicting dependencies. The PyTorch setup uses the official PyTorch 2.12.0 / torchvision 0.27.0 CUDA 13.2 wheels, matching the RTX 5060 Blackwell architecture. ONNX Runtime CUDA/cuDNN libraries are installed as RTMPose venv dependencies. Resolved package versions are recorded in the lock snapshots.
 
-`run_all_research.sh` executes each supported adapter against both canonical datasets sequentially with a 65°C cutoff and checks temperature every five images by default. Override with `INFANTPOSE_MAX_GPU_TEMP_C` and `INFANTPOSE_TEMP_CHECK_INTERVAL`; a thermal stop exits the script. OpenPose is deliberately excluded because no compatible WSL adapter/runtime is available.
+`run_all_research.sh` executes all five local model adapters against both canonical datasets sequentially with an 85°C cutoff by default and checks temperature after every image. Override with `INFANTPOSE_MAX_GPU_TEMP_C` and `INFANTPOSE_TEMP_CHECK_INTERVAL`; a thermal stop exits the script. OpenPose runs in its own venv and keeps one image in flight to limit VRAM use. Its Python adapter uses PIL and deliberately does not import the OpenCV Python wheel, which conflicts with the system OpenCV linked into OpenPose.
 
 ## Outputs and cache
 

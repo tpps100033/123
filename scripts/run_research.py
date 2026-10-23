@@ -19,10 +19,14 @@ def make_adapter(model_id):
     if model_id == 'yolo11x_pose':
         from adapters.yolo import YOLO11xPose
         a=YOLO11xPose(); a.model_path=str(cache/'yolo11x_pose'/'yolo11x-pose.pt'); return a
+    if model_id == 'openpose_coco18':
+        from adapters.openpose import OpenPoseCoco18
+        d=cache/'openpose_coco18'
+        return OpenPoseCoco18(d/'pose_deploy_linevec.prototxt',d/'pose_iter_440000.caffemodel')
     raise ValueError(f'{model_id} has no validated local Python adapter; see MIGRATION_REPORT.md')
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose']); p.add_argument('--dataset',required=True,choices=['coco_singleperson_val2017','syrip_test100']); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','openpose_coco18']); p.add_argument('--dataset',required=True,choices=['coco_singleperson_val2017','syrip_test100']); a=p.parse_args()
     handoff=ROOT/'02_datasets'/'canonical'/a.dataset
     path=run_dataset(make_adapter(a.model),handoff,ROOT/'03_model_raw_outputs','fair_reference',FAIR_REFERENCE)
     manifest=json.loads((path/'run_manifest.json').read_text(encoding='utf-8'))
