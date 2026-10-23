@@ -126,6 +126,7 @@ def add_supporting_material(stage: Path) -> None:
     analysis=analysis_dirs[-1]
     files = {
         "README.md": "README.md",
+        "docs/DATA_PROVENANCE_AND_BRIEF_ANALYSIS.md": "DATA_PROVENANCE_AND_BRIEF_ANALYSIS.md",
         "MIGRATION_REPORT.md": "MIGRATION_REPORT.md",
         "PRD_v4.md": "PRD_v4.md",
         "docs/REAL_CHILD_DATASET_AVAILABILITY.md": "data_provenance/real_child_dataset_availability.md",
@@ -185,10 +186,11 @@ Generated from the local research project. The bundle contains the frozen COCO, 
 
 ## Start here
 
-1. Read `results/result_comparison.md` and `data_provenance/real_child_dataset_availability.md`.
-2. Use `results/final_results_all_domains.csv` for the combined AP/AP50/AP75/AR and latency table. Each row points to the exact `run_id` and handoff hash.
-3. Inspect `run_evidence/<dataset>/<model>/<run_id>/` for predictions, per-image metrics, device information, and run manifests.
-4. Read `CITATIONS_AND_RIGHTS.md` before citing datasets or models.
+1. Read `DATA_PROVENANCE_AND_BRIEF_ANALYSIS.md` for dataset origins, selection rules, and a brief score interpretation.
+2. Read `results/result_comparison.md` and `data_provenance/real_child_dataset_availability.md`.
+3. Use `results/final_results_all_domains.csv` for the combined AP/AP50/AP75/AR and latency table. Each row points to the exact `run_id` and handoff hash.
+4. Inspect `run_evidence/<dataset>/<model>/<run_id>/` for predictions, per-image metrics, device information, and run manifests.
+5. Read `CITATIONS_AND_RIGHTS.md` before citing datasets or models.
 5. Use the code/notebooks in `source/` to trace the unchanged preprocessing, keypoint mapping, and official metric implementation.
 
 ## Scope and interpretation
