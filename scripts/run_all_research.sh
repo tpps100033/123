@@ -28,6 +28,7 @@ run_model movenet_thunder movenet
 run_model rtmpose_m rtmpose
 run_model yolo11x_pose yolo
 run_model openpose_coco18 openpose
+run_model sapiens_1b_coco sapiens
 "$ENV_ROOT/rtmpose/bin/python" "$ROOT/scripts/merge_results.py"
 "$ENV_ROOT/rtmpose/bin/python" "$ROOT/scripts/analyse_results.py"
 printf 'All available model/dataset runs completed. Partial, failed, or thermally stopped runs are excluded from merge.\n'

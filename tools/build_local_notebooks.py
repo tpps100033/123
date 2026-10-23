@@ -28,7 +28,14 @@ for dataset in DATASETS:
     subprocess.run([sys.executable, str(ROOT/'scripts'/'run_research.py'), '--model', MODEL, '--dataset', dataset], check=True)
 """]
     notebook(stem+'_FairReference_local.ipynb',title+'｜本地 fair_reference',f'請選擇 **{kernel}** kernel。正式協定固定 batch=1、10 張 warm-up、FP32；指標由官方 `pycocotools.COCOeval(iouType="keypoints")` 計算。COCO 結果是 921 張單人子集上的 AP，不代表完整 val2017 排行榜成績；SyRIP 標示為自訂資料域的 COCO OKS 評估。執行前先完成 `00`，並確認模型快取與兩個已驗證資料 handoff 均存在。',[*cells],kernel,'InfantPose ('+kernel.rsplit('-',1)[-1]+')')
-notebook('05_Sapiens_1B_local.ipynb','05｜Sapiens 1B（非 v4 正式範圍）','原始 Colab Notebook 保留在 `../original/`。PRD v4 明確將 Sapiens 排除在正式模型範圍外；本地不載入 gated 權重、不產生比較分數，也不把 import 當成通過測試。',[boot,"print({'model_id':'sapiens_1b_coco','status':'not_in_v4_formal_scope','source_notebook':'../original/05_Sapiens_1B_FairReference_v4.ipynb'})"], 'infantpose-rtmpose', 'InfantPose (rtmpose)')
+notebook('05_Sapiens_1B_local.ipynb','05｜Sapiens 1B CUDA 評估','此模型在原始研究 Drive 中屬於六模型基準；PRD v4 將它排除於原四模型 scope，但本地擴充流程保留並實際評估。請先從原研究 Drive 快取取得 checkpoint，並在 WSL cache 安裝 Sapiens Lite 官方 demo。使用獨立 `infantpose-sapiens` kernel、FP32、batch=1 與相同官方 COCOeval。',[boot,"""import subprocess, sys
+MODEL = 'sapiens_1b_coco'
+CHECKPOINT = Path.home() / '.local/share/infantpose/model_cache/sapiens_1b/sapiens_1b_coco_best_coco_AP_821_torchscript.pt2'
+assert CHECKPOINT.is_file() and CHECKPOINT.stat().st_size == 4676154239, f'Sapiens checkpoint unavailable or incomplete: {CHECKPOINT}'
+subprocess.run([sys.executable, str(ROOT/'scripts'/'validate_model.py'), '--model', MODEL, '--dataset', 'coco_singleperson_val2017'], check=True)
+for dataset in ('coco_singleperson_val2017', 'syrip_test100'):
+    subprocess.run([sys.executable, str(ROOT/'scripts'/'run_research.py'), '--model', MODEL, '--dataset', dataset], check=True)
+"""], 'infantpose-sapiens', 'InfantPose (sapiens)')
 notebook('06_OpenPose_COCO18_local.ipynb','06｜OpenPose COCO-18 CUDA 評估','使用 WSL2 中本地編譯的 OpenPose 1.7.0 CUDA/Caffe runtime。固定網路輸入為 480×368 以限制 RTX 5060 顯存；先執行單張與雙張推論驗證，再跑完整 COCO 與 SyRIP 官方 COCOeval。',[boot,"""import subprocess, sys
 subprocess.run([sys.executable, str(ROOT/'scripts'/'validate_model.py'), '--model', 'openpose_coco18', '--dataset', 'coco_singleperson_val2017'], check=True)
 for dataset in ('coco_singleperson_val2017', 'syrip_test100'):

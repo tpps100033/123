@@ -55,12 +55,19 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
     thermal_stop=None
     try:
         adapter.load(profile)
-        adapter.warmup(rows[:10],profile)
+        if hasattr(adapter,'prepare_dataset'):
+            adapter.prepare_dataset(rows,profile)
+        if getattr(adapter,'thermal_stop',None):
+            thermal_stop=adapter.thermal_stop
+        if not thermal_stop:
+            adapter.warmup(rows[:10],profile)
         temperature=_gpu_temperature_c()
-        if temperature is not None and temperature >= thermal_limit:
+        if temperature is not None and temperature > thermal_limit:
             thermal_stop={'temperature_c':temperature,'limit_c':thermal_limit,'processed':0,'phase':'warmup'}
     except Exception as e:
         load_error=e
+        if getattr(adapter,'thermal_stop',None):
+            thermal_stop=adapter.thermal_stop
     load_ms=(perf_counter()-load_started)*1000
     predictions=[]
     for index,row in enumerate(rows):
@@ -68,7 +75,7 @@ def run_dataset(adapter, handoff_root, output_root, profile, protocol):
             break
         if index % thermal_check_interval == 0:
             temperature=_gpu_temperature_c()
-            if temperature is not None and temperature >= thermal_limit:
+            if temperature is not None and temperature > thermal_limit:
                 thermal_stop={'temperature_c':temperature,'limit_c':thermal_limit,'processed':len(predictions),'phase':'inference'}
                 break
         try:

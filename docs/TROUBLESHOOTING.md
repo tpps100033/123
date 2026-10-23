@@ -4,6 +4,10 @@
 
 Run `nvidia-smi` inside Ubuntu. WSL should use the NVIDIA Windows driver supplied by the host. Do not install a Linux display driver in the WSL distribution. If the command is missing or reports no device, update the Windows NVIDIA driver and check `wsl --status` / `wsl --list --verbose` from PowerShell.
 
+## Sapiens checkpoint is missing
+
+The Drive connector limits individual downloads to 256 MiB, while the source Sapiens TorchScript checkpoint is 4,676,154,239 bytes and is not publicly downloadable. Download it through an authenticated Drive client, then place it at `~/.local/share/infantpose/model_cache/sapiens_1b/sapiens_1b_coco_best_coco_AP_821_torchscript.pt2` in Ubuntu. Check the byte size before running `python scripts/validate_model.py --model sapiens_1b_coco --dataset coco_singleperson_val2017`. Sapiens has its own `infantpose-sapiens` kernel and venv; do not install its packages in the other model environments.
+
 ## OpenPose build fails before compilation
 
 Run `bash scripts/build_openpose_cuda.sh` from Ubuntu after installing the native OpenPose development headers listed in [README.md](../README.md). The build cache, CUDA wheels, pybind11 checkout, and extension are under `~/.local/share/infantpose/`; model weights stay in the project cache. The build uses CUDA Toolkit 13.2.1 and must generate `sm_120` flags for the RTX 5060. If the local OpenPose source or submodules changed, the script stops when its compatibility patches no longer match.

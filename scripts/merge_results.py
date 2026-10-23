@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 EXPECTED={'batch_size':1,'warmup_images':10,'precision':'fp32','amp':False,'compile':False,'quantization':False,'tensor_rt':False,'rankable_across_models':True}
+EXPECTED_MODELS={'mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18'}
+EXPECTED_DATASETS={'coco_singleperson_val2017','syrip_test100'}
 
 def main():
     runs=[]
@@ -16,6 +18,8 @@ def main():
     if not runs: raise RuntimeError('No complete, comparable fair_reference runs found.')
     latest={}
     for path,m in sorted(runs,key=lambda x:x[1]['run_id']): latest[(m['model_id'],m['dataset_id'])]=(path,m)
+    missing=sorted((model,dataset) for model in EXPECTED_MODELS for dataset in EXPECTED_DATASETS if (model,dataset) not in latest)
+    if missing: raise RuntimeError(f'Cannot publish the six-model table; complete fair_reference runs are missing: {missing}')
     stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ'); out=ROOT/'04_merged_results'/f'merged_{stamp}'; out.mkdir(parents=True)
     rows=[]
     for path,m in latest.values():

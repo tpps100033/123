@@ -7,12 +7,14 @@ from benchmark_core.data import load_handoff
 from scripts.run_research import make_adapter
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100']); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100']); a=p.parse_args()
     result={'model_id':a.model,'dataset_id':a.dataset,'started_utc':datetime.now(timezone.utc).isoformat(),'status':'failed','single_image':None,'batch_two':None,'gpu_used':False}
     try:
         adapter=make_adapter(a.model); handoff,rows=load_handoff(ROOT/'02_datasets'/'canonical'/a.dataset)
         if len(rows)<2: raise RuntimeError('Smoke validation needs at least two rows in the verified handoff.')
-        adapter.load('fair_reference'); result['model_provenance']=adapter.provenance()
+        adapter.load('fair_reference')
+        if hasattr(adapter,'prepare_dataset'): adapter.prepare_dataset(rows[:2],'fair_reference')
+        result['model_provenance']=adapter.provenance()
         one=adapter.predict(rows[0],'fair_reference').validate(); two=adapter.predict_batch(rows[:2],'fair_reference')
         if len(two)!=2: raise RuntimeError(f'batch API returned {len(two)} outputs for 2 images')
         for prediction in two: prediction.validate()
@@ -34,7 +36,8 @@ def main():
         except Exception: pass
         result['status']='inference_pass' if outputs_valid and consistent and result['gpu_used'] else 'inference_pass_cpu_only' if outputs_valid and consistent else 'format_failed'
     except Exception as exc:
-        result.update(status='blocked' if 'no local adapter/runtime' in str(exc) else 'failed',error_type=type(exc).__name__,error=str(exc),traceback=traceback.format_exc(limit=5))
+        blocked = 'no local adapter/runtime' in str(exc) or (a.model=='sapiens_1b_coco' and isinstance(exc,FileNotFoundError) and 'checkpoint' in str(exc).lower())
+        result.update(status='blocked' if blocked else 'failed',error_type=type(exc).__name__,error=str(exc),traceback=traceback.format_exc(limit=5))
     finally:
         if 'adapter' in locals() and hasattr(adapter,'close'):
             try: adapter.close()
