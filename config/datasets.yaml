@@ -12,11 +12,12 @@ datasets:
     expected_samples: 100
     annotation_contract: coco17_verified_mapping
     metric: oks_pck10_coverage
-  babypose_test160_limb12:
-    display_name: BabyPose official test subset, 160 frames
-    domain: preterm_infant_depth
-    expected_samples: 160
+  sviro_child_i3_test53_coco12:
+    display_name: SVIRO BMW i3 child-only test subset
+    domain: child_synthetic_rgb
+    expected_samples: 53
     annotation_contract: coco17_with_12_limb_labels_and_5_unlabelled_face_points
-    metric: cocoapi_keypoint_oks_limb12_subset
-    source_doi: 10.5281/zenodo.5336836
-    note: Separate supplementary domain; AP cannot be compared numerically with full 17-point AP.
+    metric: cocoapi_keypoint_oks_child_subset
+    source: https://sviro.kl.dfki.de/
+    license: CC BY-NC-SA 4.0
+    note: Child-only test scenes; use official person boxes for area.

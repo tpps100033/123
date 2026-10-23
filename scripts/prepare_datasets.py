@@ -25,14 +25,14 @@ def safe_extract(archive, destination):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', choices=['all', 'coco_singleperson_val2017', 'syrip_test100', 'babypose_test160_limb12'], default='all')
+    parser.add_argument('--dataset', choices=['all', 'coco_singleperson_val2017', 'syrip_test100', 'sviro_child_i3_test53_coco12'], default='all')
     args = parser.parse_args()
     config = json.loads((ROOT / 'config/local.json').read_text(encoding='utf-8'))
     for dataset_id, spec in config['datasets'].items():
         if args.dataset != 'all' and args.dataset != dataset_id:
             continue
-        if spec.get('source_kind') == 'zenodo_http_range':
-            from scripts.prepare_babypose import prepare
+        if spec.get('source_kind') == 'sviro_http_range':
+            from scripts.prepare_sviro_child import prepare
             prepare()
             continue
         canonical = ROOT / '02_datasets' / 'canonical' / dataset_id

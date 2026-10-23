@@ -4,15 +4,15 @@ This project keeps the Colab research artifacts intact and adds local WSL2 entry
 
 ## Current state
 
-The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). Six models passed actual single-image and two-image inference validation; four used the RTX 5060 through CUDA, while MediaPipe and MoveNet used CPU because their GPU runtimes are unavailable in this WSL setup. All six completed both formal datasets. The latest comparison table and plots are in `04_merged_results/merged_20261023T054218Z/` and `05_analysis_results/analysis_20261023T054220Z/`; see [MIGRATION_REPORT.md](MIGRATION_REPORT.md) and [reports/result_comparison.md](reports/result_comparison.md) for scores and evidence. The highest recorded Sapiens temperature was 80°C with the 85°C stop limit; no thermal stop occurred.
+The RTX 5060 Laptop GPU is visible inside WSL2 Ubuntu 24.04.5 with 8,151 MiB VRAM. Python 3.12 and isolated model environments are installed under the WSL Linux home directory (not in Windows Python and not inside the project). Six models passed real single-image and two-image inference validation; four used the RTX 5060 through CUDA, while MediaPipe and MoveNet used CPU because their GPU runtimes are unavailable in this WSL setup. All six completed COCO (921 images), SyRIP (100 images), and the child-only SVIRO subset (53 images), for 18 complete model/dataset runs. See [MIGRATION_REPORT.md](MIGRATION_REPORT.md), [reports/result_comparison.md](reports/result_comparison.md), and [reports/sviro_child_comparison.md](reports/sviro_child_comparison.md) for results and evidence. The highest temperature observed during the latest child run was 79°C; its 85°C stop limit did not trigger.
 
 The Sapiens checkpoint was found in the local `姿態判定` Downloads folder and copied into the ignored WSL model cache. Both original 4,676,154,239-byte downloads remain untouched. Sapiens passed single-image and batch inference on CUDA and completed COCO 921/921 and SyRIP 100/100.
 
-## Additional labelled infant dataset
+## Three benchmark domains
 
-The supplementary [BabyPose protocol](docs/BABYPOSE.md) uses 160 annotated 8-bit depth frames, 10 per patient across 16 infants, selected deterministically from the v2 annotations' reconstructed test partition. Twelve limb keypoints map into COCO's 17 slots and five face points remain unlabelled. Run `python scripts/prepare_babypose.py` to fetch only the needed ZIP entries from [Zenodo v2](https://doi.org/10.5281/zenodo.5336836) and [v1](https://doi.org/10.5281/zenodo.3891404). Run a model with `python scripts/run_research.py --model <model> --dataset babypose_test160_limb12` from its isolated WSL environment. BabyPose's 12-point subset AP is reported separately from full 17-point COCO/SyRIP AP.
+The formal comparisons are COCO single-person val2017 (921 images), SyRIP infant RGB (100 images), and a child-only SVIRO RGB test subset (53 images). BabyPose is excluded from execution and comparison because all six RGB pose models scored AP=0 on its depth frames. Its original files and exploratory report remain archived and are not part of the three-domain result.
 
-All six models have now completed BabyPose 160/160 with recorded GPU/CPU devices and no thermal stop. See [the BabyPose result report](reports/babypose_comparison.md). This depth-domain stress test gave AP=0 for all six, so the report includes detection coverage and an evaluation sanity check rather than claiming a meaningful AP ranking.
+The child subset comes from the official [SVIRO dataset](https://sviro.kl.dfki.de/), licensed CC BY-NC-SA 4.0. It selects BMW i3 held-out test scenes with exactly one class-2 child and no adult or infant. Run `py -3.9 scripts/prepare_sviro_child.py` in Windows PowerShell; it verifies the annotation archives and range-fetches only the selected RGB images. Twelve released limb joints map to COCO-17, face joints are unlabelled, and the released person bounding box supplies the COCO area. The six models use the same frozen 53-image handoff and official COCOeval implementation. See [child protocol](docs/SVIRO_CHILD.md) and [child comparison report](reports/sviro_child_comparison.md).
 
 ## Setup
 
@@ -22,9 +22,11 @@ All six models have now completed BabyPose 160/160 with recorded GPU/CPU devices
 4. Run `bash scripts/setup_wsl.sh` from this project directory. It creates isolated MediaPipe, MoveNet, RTMPose, YOLO, Sapiens, and OpenPose runtime environments under `~/.local/share/infantpose/venvs/`, installs `pycocotools` in each for official evaluation, registers one kernel per environment, and records resolved package versions under `requirements/locks/`. The setup enforces `PIP_REQUIRE_VIRTUALENV` and never installs Python model packages into global or Windows Python.
 5. Run `bash scripts/build_openpose_cuda.sh` to build official OpenPose v1.7.0 plus its Python CUDA extension in the isolated WSL cache. The script pins CUDA Toolkit 13.2.1 and pybind11 v2.13.6, targets `sm_120`, checks the cached weight hash, applies the recorded CUDA 13 compatibility patches, and limits compilation to two jobs by default.
 6. Run `python scripts/gpu_diagnostics.py` inside each kernel. An import by itself is not a GPU validation: the diagnostic runs a CUDA matrix operation and records the actual framework device/provider.
-7. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and available model weights have already been imported from the user-provided Drive project. `scripts/prepare_datasets.py` verifies and reuses the 921/100-row handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. The Sapiens checkpoint belongs in the ignored WSL cache path listed above; never commit a real token or checkpoint.
+7. The source COCO/SyRIP archives, annotations, selected images, handoff manifests, and available model weights have already been imported from the user-provided Drive project. `scripts/prepare_datasets.py` verifies and reuses the COCO, SyRIP, and SVIRO handoffs. Keep all data, weights, raw predictions, logs, and generated reports outside Git. The Sapiens checkpoint belongs in the ignored WSL cache path listed above; never commit a real token or checkpoint.
 8. Run `python scripts/validate_model.py --model <model> --dataset coco_singleperson_val2017` for an actual model smoke test. Then run an individual dataset with `python scripts/run_research.py --model <model> --dataset <dataset>`. GPU runs stop at `INFANTPOSE_MAX_GPU_TEMP_C` (85°C by default) and check temperature after every image. A thermally stopped run is never scored; per-image prediction checkpoints remain available if a native runtime aborts.
-9. Run local notebooks `90` and `91` or `scripts/merge_results.py` and `scripts/analyse_results.py` to merge and analyze the original complete results. Those frozen runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping. The supplementary BabyPose handoff requires 160 rows and has its own comparison report.
+9. Run local notebooks `90` and `91` or `scripts/merge_results.py` and `scripts/analyse_results.py` to merge and analyze the original COCO/SyRIP results. Those frozen runs require exactly 921 COCO rows or 100 SyRIP rows and the original verified COCO-17 mapping. The child comparison has a separate machine-generated report because it uses a distinct child-only test split.
+
+The SVIRO annotation-to-COCOeval path can be checked with `python scripts/verify_sviro_coco_metric.py`. It uses ground-truth coordinates as an oracle and must produce AP=1 and AR=1 across all 53 images; it is an evaluator integrity check, not a model score.
 
 See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for WSL, CUDA, OpenPose memory, and thermal guidance.
 
@@ -37,6 +39,7 @@ bash scripts/setup_wsl.sh
 bash scripts/build_openpose_cuda.sh
 python scripts/gpu_diagnostics.py
 python scripts/prepare_datasets.py
+py -3.9 scripts/prepare_sviro_child.py
 python scripts/prepare_model_assets.py
 python scripts/validate_model.py --model mediapipe_pose_heavy --dataset coco_singleperson_val2017
 python scripts/validate_model.py --model sapiens_1b_coco --dataset coco_singleperson_val2017
@@ -44,14 +47,13 @@ python scripts/run_research.py --model mediapipe_pose_heavy --dataset coco_singl
 bash scripts/run_all_research.sh
 python scripts/merge_results.py
 python scripts/analyse_results.py
-python scripts/compare_babypose.py
-bash scripts/run_babypose_wsl.sh
+python scripts/compare_sviro_child.py
 python tools/build_local_notebooks.py
 ```
 
 Each model runtime has its own environment because TensorFlow, MediaPipe, ONNX Runtime, and PyTorch stacks can constrain conflicting dependencies. The PyTorch setup uses the official PyTorch 2.12.0 / torchvision 0.27.0 CUDA 13.2 wheels, matching the RTX 5060 Blackwell architecture. ONNX Runtime CUDA/cuDNN libraries are installed as RTMPose venv dependencies. Resolved package versions are recorded in the lock snapshots.
 
-`run_all_research.sh` executes all six local model adapters against both canonical datasets sequentially with an 85°C cutoff by default and checks temperature after every image. Sapiens polls temperature from its streamed official-demo progress output and terminates the child process at the cutoff. Override with `INFANTPOSE_MAX_GPU_TEMP_C` and `INFANTPOSE_TEMP_CHECK_INTERVAL`; a thermal stop exits the script. OpenPose runs in its own venv and keeps one image in flight to limit VRAM use. Its Python adapter uses PIL and deliberately does not import the OpenCV Python wheel, which conflicts with the system OpenCV linked into OpenPose.
+`run_all_research.sh` executes all six local model adapters against COCO, SyRIP, and SVIRO sequentially with an 85°C cutoff by default and checks temperature after every image. Sapiens polls temperature from its streamed official-demo progress output and terminates the child process at the cutoff. Override with `INFANTPOSE_MAX_GPU_TEMP_C` and `INFANTPOSE_TEMP_CHECK_INTERVAL`; a thermal stop exits the script. OpenPose runs in its own venv and keeps one image in flight to limit VRAM use. Its Python adapter uses PIL and deliberately does not import the OpenCV Python wheel, which conflicts with the system OpenCV linked into OpenPose.
 
 ## Outputs and cache
 

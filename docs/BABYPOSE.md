@@ -1,5 +1,7 @@
 # BabyPose supplementary infant benchmark
 
+> Archived exploratory dataset. BabyPose is excluded from the supported three-domain benchmark and standard run commands. All six generic RGB pose models scored AP=0 on its depth-image subset, so those results are not used for model comparison. The material below documents the historical investigation only.
+
 ## Source and rights
 
 BabyPose is a real preterm-infant depth-image dataset by Migliorelli and colleagues. We use the 16,000-row annotation CSV from [Zenodo v2](https://doi.org/10.5281/zenodo.5336836) and the corresponding 8-bit depth PNGs from the [original Zenodo v1 ZIP](https://doi.org/10.5281/zenodo.3891404). Both records identify CC BY 4.0. The dataset paper is [The babyPose dataset](https://pmc.ncbi.nlm.nih.gov/articles/PMC7551984/). Cite the paper and both records in work using these data. The project's images and source annotations stay under ignored `02_datasets/` paths and are not pushed to Git.
@@ -24,13 +26,6 @@ Only the 8-bit depth PNGs are used. The v2 CSV coordinate strings are stored as 
 
 The COCO-format person bounding box and area are the tight rectangle enclosing the visible labelled limb joints. This is a declared derived scale because BabyPose has no person bounding boxes. The 17 output slots allow the same `pycocotools.COCOeval(iouType='keypoints')` implementation to run, and the absent face points do not enter OKS for each ground-truth pose. These are **12-limb-keypoint custom-subset AP/AR** scores, not full COCO 17-keypoint AP and not directly comparable in magnitude with the COCO or SyRIP columns. Depth images also create a different input domain from the RGB datasets. Compare model order or changes within this BabyPose subset, with those limits stated.
 
-## Reproduce
+## Archived experiment
 
-```bash
-python scripts/prepare_babypose.py
-python scripts/validate_model.py --model yolo11x_pose --dataset babypose_test160_limb12
-python scripts/run_research.py --model yolo11x_pose --dataset babypose_test160_limb12
-python scripts/compare_babypose.py
-```
-
-Run each model in its already isolated WSL environment, or run all six sequentially with `bash scripts/run_babypose_wsl.sh`. The script reuses a complete run only when its input handoff hash still matches; rerunning it does not heat the GPU unnecessarily. The normal 85°C GPU stop applies. `scripts/prepare_datasets.py --dataset all` also prepares BabyPose and reuses its verified handoff on later runs. The main COCO/SyRIP 12-run merged report remains frozen; supplementary BabyPose results are collected separately by `scripts/compare_babypose.py`.
+BabyPose is no longer part of the supported preparation, model validation, or research commands. The historical source notebook, annotations, model predictions, and exploratory comparison remain archived for provenance. `scripts/run_babypose_wsl.sh` is disabled. Current work uses COCO, SyRIP, and the separate SVIRO child-only set; see [the supported child protocol](SVIRO_CHILD.md).

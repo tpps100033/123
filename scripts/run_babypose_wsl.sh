@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+echo "BabyPose is archived and excluded from the supported COCO/SyRIP/SVIRO benchmark. Use scripts/run_all_research.sh." >&2
+exit 2
 
 cd "$(dirname "$0")/.."
 venv_root="${INFANTPOSE_CACHE_ROOT:-$HOME/.local/share/infantpose}/venvs"

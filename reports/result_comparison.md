@@ -20,3 +20,18 @@ All six models completed 921-image COCO single-person-subset and 100-image SyRIP
 Each model passed a real single-image and batch-two inference check with 17 mapped output keypoints per image. RTMPose, YOLO11x Pose, OpenPose, and Sapiens used the RTX 5060. MediaPipe and MoveNet completed on CPU because their GPU execution providers are unavailable in this WSL setup. Both datasets completed for every model, giving 12 of 12 complete runs. The Sapiens run recorded 5,727 MiB peak device use and 80°C maximum GPU temperature; the configured thermal stop was 85°C and did not trigger.
 
 The Δ column is descriptive because the COCO and SyRIP datasets have different distributions. No paired original Colab result using official COCOeval metrics was available, so a numerical Colab-to-local difference cannot be computed. Historical project-defined OKS/PCK results remain preserved as historical artifacts and are not compared to COCOeval values.
+
+## Child-only SVIRO comparison
+
+All six models also completed the same 53-image SVIRO BMW i3 child-only held-out subset. The sample set contains exactly one child and no labeled adult or infant per scene. Its 12 mapped limb joints and five unlabelled face points use the declared mapping and visibility policy in [docs/SVIRO_CHILD.md](../docs/SVIRO_CHILD.md). The official SVIRO person boxes provide annotation area. The evaluation uses the same unmodified COCOeval implementation and defaults; these are child-domain scores, not COCO leaderboard results. Since five face landmarks are unlabelled and are ignored by COCOeval, interpret the scores separately from COCO and SyRIP.
+
+| Model | SVIRO child AP | AP50 | AP75 | AR | Images / errors | Runtime device |
+|---|---:|---:|---:|---:|---:|---|
+| MediaPipe Pose Heavy | 0.386 | 0.544 | 0.394 | 0.443 | 53 / 0 | CPU |
+| MoveNet Thunder | 0.269 | 0.841 | 0.017 | 0.330 | 53 / 0 | CPU |
+| OpenPose COCO18 | 0.882 | 1.000 | 0.979 | 0.904 | 53 / 0 | RTX 5060 |
+| RTMPose-M | 0.839 | 0.861 | 0.861 | 0.849 | 53 / 0 | RTX 5060 |
+| Sapiens 1B COCO | 0.787 | 0.920 | 0.859 | 0.806 | 53 / 0 | RTX 5060 |
+| YOLO11x Pose | 0.941 | 1.000 | 0.978 | 0.955 | 53 / 0 | RTX 5060 |
+
+Each model passed a real single-image and two-image validation. MediaPipe returned a valid no-detection output for one batch image; MoveNet returned poses for both. Their full 53-image evaluations completed with no inference errors. The COCOeval perfect-coordinate oracle returned AP=1.000 and AR=1.000 on all 53 handoff images. GPU use was confirmed for OpenPose, RTMPose, Sapiens, and YOLO. Highest manually observed temperature during this child run was 79°C; the configured 85°C thermal stop did not trigger. Per-model end-of-run temperature and memory samples are in [reports/sviro_child_comparison.md](sviro_child_comparison.md).
