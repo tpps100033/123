@@ -62,7 +62,8 @@ def selected_runs(stage: Path) -> list[dict]:
                 raise RuntimeError(f"No complete error-free frozen run: {model} / {dataset}")
             _, manifest_path, manifest = sorted(candidates, key=lambda item: item[0])[-1]
             run_dir = manifest_path.parent
-            evidence_rel = f"run_evidence/{dataset}/{model}/{manifest['run_id']}"
+            # Keep paths short for Windows extraction while preserving run_id in the manifest/CSV.
+            evidence_rel = f"run_evidence/{dataset}/{model}"
             for filename in ("run_manifest.json", "predictions.jsonl", "metrics.jsonl"):
                 source = run_dir / filename
                 if not source.is_file():
@@ -101,7 +102,7 @@ def copy_source_snapshot(stage: Path) -> None:
     tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode("utf-8").split("\0")
     excluded = {
         "docs/BABYPOSE.md", "scripts/prepare_babypose.py", "scripts/compare_babypose.py",
-        "scripts/run_babypose_wsl.sh",
+        "scripts/run_babypose_wsl.sh", "reports/babypose_comparison.md",
     }
     for rel in filter(None, tracked):
         path = PurePosixPath(rel)
@@ -207,7 +208,8 @@ def write_checksums(stage: Path) -> None:
 
 def main() -> None:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="paper_package_", dir=OUTPUT.parent) as temp:
+    # Keep the staging root short so nested run IDs fit Windows path limits.
+    with tempfile.TemporaryDirectory(prefix="ipkg_") as temp:
         stage = Path(temp) / "InfantPose_Paper_Artifacts"
         stage.mkdir()
         rows = selected_runs(stage)
@@ -229,8 +231,22 @@ def main() -> None:
         names = archive.namelist()
         if len([name for name in names if name.endswith("/run_manifest.json")]) != 18:
             raise RuntimeError("ZIP does not contain the 18 selected run manifests")
-        if any("/raw/" in name or "model_cache" in name for name in names):
+        if any("/raw/" in name or "model_cache" in name or "babypose" in name.lower() for name in names):
             raise RuntimeError("Source images or model cache leaked into package")
+        if any(name.lower().endswith((".jpg", ".jpeg", ".bmp")) for name in names):
+            raise RuntimeError("Dataset source images leaked into package")
+        checksum_entry = next(name for name in names if name.endswith("/SHA256SUMS.txt"))
+        for line in archive.read(checksum_entry).decode("utf-8").splitlines():
+            expected, member = line.split("  ", 1)
+            member_path = str(PurePosixPath(checksum_entry).parent / member)
+            actual = hashlib.sha256(archive.read(member_path)).hexdigest()
+            if actual != expected:
+                raise RuntimeError(f"SHA-256 mismatch inside archive: {member}")
+        table_entry = next(name for name in names if name.endswith("/results/final_results_all_domains.csv"))
+        with archive.open(table_entry) as stream:
+            result_rows = list(csv.DictReader((line.decode("utf-8-sig") for line in stream)))
+        if len(result_rows) != 18:
+            raise RuntimeError(f"Combined result table has {len(result_rows)} rows, expected 18")
     print(json.dumps({"status": "complete", "archive": str(OUTPUT), "files": len(names),
                       "size_mib": round(OUTPUT.stat().st_size / 1024**2, 2), "runs": len(rows),
                       "sha256": sha256(OUTPUT)}, indent=2))
