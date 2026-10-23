@@ -38,6 +38,21 @@ def main():
     note='AP/AR fields are the official cocodataset/cocoapi COCOeval keypoint summary. COCO values use the selected 921-image single-person subset; SyRIP values use the same COCO OKS evaluator and are not official COCO leaderboard results.'
     report=['# Two-domain COCO keypoint evaluation','',f"Input table: `{tables[-1].relative_to(ROOT)}`",'',f'Paired models: {len(summary)}','',note,'','Pose coverage is diagnostic only. Timing is compared only for complete GPU runs.']
     if not summary: report += ['', 'No model has a complete pair of COCO and SyRIP runs yet.']
+    else:
+        names={
+            'mediapipe_pose_heavy':'MediaPipe Pose Heavy',
+            'movenet_thunder':'MoveNet Thunder',
+            'openpose_coco18':'OpenPose COCO18',
+            'rtmpose_m':'RTMPose-M',
+            'sapiens_1b_coco':'Sapiens 1B COCO',
+            'yolo11x_pose':'YOLO11x Pose',
+        }
+        def fmt(value): return '—' if value is None else f'{value:.3f}'
+        report += ['', '| Model | COCO subset AP | SyRIP COCO-OKS AP | Δ AP (COCO − SyRIP) | COCO AP50 | SyRIP AP50 | COCO AP75 | SyRIP AP75 |', '|---|---:|---:|---:|---:|---:|---:|---:|']
+        for item in summary:
+            model=names.get(item['model_id'],item['model_id'])
+            report.append('| '+model+' | '+fmt(item['coco_subset_AP'])+' | '+fmt(item['syrip_coco_oks_AP'])+' | '+fmt(item['difference_AP'])+' | '+fmt(item['coco_subset_AP50'])+' | '+fmt(item['syrip_coco_oks_AP50'])+' | '+fmt(item['coco_subset_AP75'])+' | '+fmt(item['syrip_coco_oks_AP75'])+' |')
+        report += ['', 'Δ AP is descriptive only because SyRIP is a custom-domain dataset. A paired original Colab run with official COCOeval metrics was not available, so a numerical Colab-to-local delta cannot be calculated. Historical project-defined OKS/PCK outputs remain separate and are not treated as COCOeval scores.']
     (out/'comparison_report.md').write_text('\n'.join(report)+'\n',encoding='utf-8')
     (out/'analysis_manifest.json').write_text(json.dumps({'input_table':str(tables[-1]),'paired_models':len(summary),'score_rows':summary,'latency_rows':latency,'metric_protocol':'cocodataset/cocoapi.COCOeval(iouType=keypoints)'},ensure_ascii=False,indent=2),encoding='utf-8')
     if summary:

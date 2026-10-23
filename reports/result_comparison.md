@@ -1,20 +1,22 @@
-# Result comparison — official COCO keypoint metrics
+# InfantPose local result comparison
 
-The former project-defined per-image mean OKS and PCK@0.10 values are retained only as historical artifacts. New accuracy results use the official `cocodataset/cocoapi.COCOeval(iouType='keypoints')` implementation with default OKS thresholds, COCO sigmas, recall thresholds, area ranges, and `maxDets=20`.
+Final merged results: `04_merged_results/merged_20261023T052914Z/benchmark_table.csv`
 
-COCO scores below cover the exact selected 921-image single-person subset; they are not full val2017 leaderboard scores. SyRIP is evaluated with the same COCO OKS implementation and is a custom-domain result. Pose coverage is diagnostic only. Each prediction's instance score is the mean of its 17 keypoint confidences.
+Machine-generated paired analysis: `05_analysis_results/analysis_20261023T053000Z/`
 
-| Model | Runtime | Dataset | AP | AP50 | AP75 | AR | Completeness |
-|---|---|---|---:|---:|---:|---:|---|
-| MediaPipe Pose Heavy | CPU | COCO 921 | 0.41765 | 0.60562 | 0.46800 | 0.46645 | Complete |
-| MediaPipe Pose Heavy | CPU | SyRIP 100 | 0.73032 | 0.92443 | 0.90044 | 0.76400 | Complete |
-| MoveNet Thunder | CPU/XNNPACK | COCO 921 | 0.103 | 0.326 | 0.048 | 0.198 | Complete |
-| MoveNet Thunder | CPU/XNNPACK | SyRIP 100 | 0.417 | 0.900 | 0.349 | 0.494 | Complete |
-| RTMPose-M + YOLOX-M | CUDA | COCO 921 | 0.77481 | 0.89555 | 0.83961 | 0.80510 | Complete |
-| RTMPose-M + YOLOX-M | CUDA | SyRIP 100 | 0.83417 | 0.96999 | 0.93737 | 0.84800 | Complete |
-| YOLO11x-Pose | CUDA | SyRIP 100 | 0.75071 | 0.98653 | 0.86314 | 0.78300 | Complete |
-| YOLO11x-Pose | CUDA + ASUS Full Speed fans | COCO 921 | 0.72192 | 0.91870 | 0.79433 | 0.77883 | Complete, 921/921 |
+All six models completed 921-image COCO single-person-subset and 100-image SyRIP runs. All accuracy scores use the official `cocodataset/cocoapi.COCOeval(iouType='keypoints')` evaluator with its default keypoint OKS sigmas and thresholds. COCO values describe the selected 921-image subset, not the full COCO val2017 leaderboard. SyRIP is a custom-domain dataset evaluated with the same COCO OKS implementation; its score is not a COCO leaderboard result.
 
-MediaPipe and MoveNet GPU inference could not be enabled in this WSL setup. MoveNet's TensorFlow GPU libraries and TFLite GPU delegate are unavailable; MediaPipe's GPU task rejects WSL's software renderer. Their CPU predictions remain useful for metric comparison but are not GPU timing baselines. RTMPose and YOLO passed actual CUDA inference smoke checks. With ASUS MyASUS Full Speed selected on AC power, YOLO completed all 921 COCO images using an 85°C thermal stop limit and a temperature check on every image. The run manifest recorded a 75°C GPU temperature; independent monitoring sampled at most 72°C. No thermal stop occurred. The complete result was merged into `04_merged_results/merged_20261022T170631Z/benchmark_table.csv`; paired analysis is in `05_analysis_results/analysis_20261022T170631Z/`.
+| Model | COCO subset AP | SyRIP COCO-OKS AP | Δ AP (COCO − SyRIP) | COCO AP50 | SyRIP AP50 | COCO AP75 | SyRIP AP75 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| MediaPipe Pose Heavy | 0.418 | 0.730 | -0.313 | 0.606 | 0.924 | 0.468 | 0.900 |
+| MoveNet Thunder | 0.103 | 0.417 | -0.314 | 0.326 | 0.898 | 0.048 | 0.349 |
+| OpenPose COCO18 | 0.589 | 0.477 | 0.112 | 0.789 | 0.919 | 0.650 | 0.329 |
+| RTMPose-M | 0.775 | 0.834 | -0.059 | 0.896 | 0.970 | 0.840 | 0.937 |
+| Sapiens 1B COCO | 0.535 | 0.755 | -0.221 | 0.742 | 0.931 | 0.584 | 0.830 |
+| YOLO11x Pose | 0.722 | 0.751 | -0.029 | 0.919 | 0.987 | 0.794 | 0.863 |
 
-No paired official COCOeval score from the original Colab run was found, so a numerical Colab-to-local delta cannot be calculated. Historical custom OKS/PCK outputs remain preserved and are not reinterpreted as COCOeval results. The machine-generated paired comparison is in `05_analysis_results/analysis_20261022T170631Z/comparison_report.md`.
+## Runtime validation
+
+Each model passed a real single-image and batch-two inference check with 17 mapped output keypoints per image. RTMPose, YOLO11x Pose, OpenPose, and Sapiens used the RTX 5060. MediaPipe and MoveNet completed on CPU because their GPU execution providers are unavailable in this WSL setup. Both datasets completed for every model, giving 12 of 12 complete runs. The Sapiens run recorded 5,727 MiB peak device use and 80°C maximum GPU temperature; the configured thermal stop was 85°C and did not trigger.
+
+The Δ column is descriptive because the COCO and SyRIP datasets have different distributions. No paired original Colab result using official COCOeval metrics was available, so a numerical Colab-to-local difference cannot be computed. Historical project-defined OKS/PCK results remain preserved as historical artifacts and are not compared to COCOeval values.
