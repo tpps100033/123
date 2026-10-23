@@ -25,14 +25,20 @@ def safe_extract(archive, destination):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', choices=['all', 'coco_singleperson_val2017', 'syrip_test100', 'sviro_child_i3_test53_coco12'], default='all')
+    parser.add_argument('--dataset', choices=['all', 'coco_singleperson_val2017', 'syrip_test100', 'sviro_child_i3_test53_coco12', 'sviro_children_allcars_test710_coco12'], default='all')
     args = parser.parse_args()
     config = json.loads((ROOT / 'config/local.json').read_text(encoding='utf-8'))
     for dataset_id, spec in config['datasets'].items():
         if args.dataset != 'all' and args.dataset != dataset_id:
             continue
+        if args.dataset == 'all' and dataset_id == 'sviro_children_allcars_test710_coco12':
+            print(json.dumps({'dataset_id':dataset_id,'status':'skipped_annotation_inventory_only','reason':'The 710-scene RGB handoff and model runs are not prepared.'}))
+            continue
         if spec.get('source_kind') == 'sviro_http_range':
-            from scripts.prepare_sviro_child import prepare
+            if dataset_id == 'sviro_children_allcars_test710_coco12':
+                from scripts.prepare_sviro_children import prepare
+            else:
+                from scripts.prepare_sviro_child import prepare
             prepare()
             continue
         canonical = ROOT / '02_datasets' / 'canonical' / dataset_id

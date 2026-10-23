@@ -1,4 +1,4 @@
-"""Build a thesis-writing bundle from the frozen three-domain experiment."""
+"""Build a paper bundle from completed COCO/SyRIP runs and SVIRO supplement."""
 from __future__ import annotations
 
 import csv
@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+from datetime import datetime
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,14 +19,14 @@ MODELS = (
 DATASETS = {
     "coco_singleperson_val2017": (921, "COCO single-person val2017 subset"),
     "syrip_test100": (100, "SyRIP infant test100"),
-    "sviro_child_i3_test53_coco12": (53, "SVIRO BMW i3 child-only test subset"),
+    "sviro_child_i3_test53_coco12": (53, "SVIRO synthetic child stress test (BMW i3 interior)"),
 }
 DISPLAY = {
     "mediapipe_pose_heavy": "MediaPipe Pose Heavy", "movenet_thunder": "MoveNet Thunder",
     "rtmpose_m": "RTMPose-M", "yolo11x_pose": "YOLO11x Pose",
     "sapiens_1b_coco": "Sapiens 1B COCO", "openpose_coco18": "OpenPose COCO18",
 }
-OUTPUT = ROOT / "04_merged_results" / "InfantPose_paper_artifacts_20261023.zip"
+OUTPUT = ROOT / "04_merged_results" / f"InfantPose_paper_artifacts_{datetime.now():%Y%m%d}.zip"
 
 
 def sha256(path: Path) -> str:
@@ -122,7 +123,11 @@ def add_supporting_material(stage: Path) -> None:
         "MIGRATION_REPORT.md": "MIGRATION_REPORT.md",
         "PRD_v4.md": "PRD_v4.md",
         "reports/result_comparison.md": "results/result_comparison.md",
-        "reports/sviro_child_comparison.md": "results/sviro_child_comparison.md",
+        "reports/sviro_child_comparison.md": "results/sviro_synthetic_child_bmw_i3_comparison.md",
+        "docs/REAL_CHILD_DATASET_AVAILABILITY.md": "data_provenance/real_child_dataset_availability.md",
+        "reports/sviro_children_inventory.json": "data_provenance/sviro_children_inventory.json",
+        "reports/sviro_wpdm_inventory.json": "data_provenance/sviro_wpdm_inventory.json",
+        "reports/sviro_child_comparison.md": "results/historical_sviro_bmw_i3_53.md",
         "04_merged_results/merged_20261023T054218Z/benchmark_table.csv": "results/coco_syrip_official_cocoeval_table.csv",
         "04_merged_results/merged_20261023T054218Z/merge_manifest.json": "results/coco_syrip_merge_manifest.json",
         "05_analysis_results/analysis_20261023T054220Z/analysis_manifest.json": "results/analysis_manifest.json",
@@ -155,7 +160,8 @@ Use the exact dataset/model version and locally recorded source metadata in each
 
 - COCO: T.-Y. Lin et al., “Microsoft COCO: Common Objects in Context,” ECCV 2014. https://arxiv.org/abs/1405.0312. Dataset home and terms: https://cocodataset.org/
 - SyRIP: X. Huang, N. Fu, S. Liu, and S. Ostadabbas, “Invariant Representation Learning for Infant Pose Estimation with Small Data,” arXiv:2010.06100 (2020). https://arxiv.org/abs/2010.06100. See the original project for data access and terms: https://github.com/ostadabbas/Infant-Pose-Estimation
-- SVIRO: M. Da Cruz et al., “SVIRO: Synthetic Vehicle Interior Rear Seat Occupancy Dataset and Benchmark,” WACV 2020. https://arxiv.org/abs/2001.03483. Dataset site: https://sviro.kl.dfki.de/. The selected source is documented as CC BY-NC-SA 4.0; preserve attribution and share-alike terms when redistributing adapted material.
+- SVIRO: M. Da Cruz et al., “SVIRO: Synthetic Vehicle Interior Rear Seat Occupancy Dataset and Benchmark,” WACV 2020. https://arxiv.org/abs/2001.03483. Dataset site: https://sviro.kl.dfki.de/. The included supplementary synthetic-domain result covers 53 single-child scenes from the official BMW i3 test split. An annotation-only scan found 710 candidate scenes across ten vehicles, but those extra RGB images were not prepared or evaluated. SVIRO is not a real-child image benchmark. The selected source is documented as CC BY-NC-SA 4.0; preserve attribution and share-alike terms when redistributing adapted material.
+- H3D: L. Bourdev and J. Malik, “Poselets: Body Part Detectors Trained Using 3D Human Pose Annotations,” ICCV 2009. Dataset page: https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/shape/h3d/. The public archive contains directly mappable body keypoints, but the downloaded XML records contain 70 `baby` instances and no `child` category, so H3D is not used as the child evaluation domain.
 
 ## Model and metric references
 
@@ -167,25 +173,25 @@ Use the exact dataset/model version and locally recorded source metadata in each
 - YOLO11: cite the exact Ultralytics software release/checkpoint recorded in the run manifest; the project states that it has no formal YOLO11 research paper. https://docs.ultralytics.com/models/yolo11/
 - Metrics: official COCO keypoint evaluation API. https://github.com/cocodataset/cocoapi and https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py
 
-The benchmark scores are research results, not clinical validation. COCO is a selected 921-image single-person subset, SyRIP is a 100-image infant subset, and SVIRO is a 53-image synthetic child subset. The SVIRO mapping has 12 labeled limb joints; five face points are unannotated. Keep its scores separate from full 17-point COCO/SyRIP comparisons. No numerical comparison to the original Colab metric is supported because the original project used nonstandard metrics.
+The benchmark scores are research results, not clinical validation. COCO is a selected 921-image single-person subset, SyRIP is a 100-image infant subset, and the included SVIRO result covers 53 scenes from one synthetic vehicle test split. The SVIRO mapping has 12 labeled limb joints; five face points are unannotated. No public candidate reviewed for this bundle provides both real child images and independent body-keypoint ground truth; the search and mapping analysis are included in `data_provenance/real_child_dataset_availability.md`. Keep SVIRO scores separate from real-child claims and full 17-point COCO/SyRIP comparisons. No numerical comparison to the original Colab metric is supported because the original project used nonstandard metrics.
 """
     (stage / "CITATIONS_AND_RIGHTS.md").write_text(citations, encoding="utf-8")
 
     readme = """# InfantPose paper-writing package
 
-Generated from the completed local research project. The bundle contains the frozen COCO, SyRIP, and SVIRO child results; 18 complete run packages with per-image predictions and metrics; official COCOeval summaries; selected dataset annotations and hashed sample indexes; validation records; reports, figures, source, notebooks, and citation/rights notes.
+Generated from the local research project. The bundle contains the frozen COCO and SyRIP results, a separate supplementary SVIRO synthetic-child result, 18 complete run packages with per-image predictions and metrics; official COCOeval summaries; selected dataset annotations and hashed sample indexes; validation records; reports, figures, source, notebooks, and citation/rights notes. It documents that a suitable public real-child image benchmark remains unavailable among the sources reviewed.
 
 ## Start here
 
-1. Read `results/result_comparison.md` and `results/sviro_child_comparison.md`.
+1. Read `results/result_comparison.md`, `results/sviro_children_comparison.md`, and `data_provenance/real_child_dataset_availability.md`.
 2. Use `results/final_results_all_domains.csv` for the combined AP/AP50/AP75/AR and latency table. Each row points to the exact `run_id` and handoff hash.
 3. Inspect `run_evidence/<dataset>/<model>/<run_id>/` for predictions, per-image metrics, device information, and run manifests.
-4. Read `CITATIONS_AND_RIGHTS.md` and `methods/docs/SVIRO_CHILD.md` before writing the methods and dataset sections.
+4. Read `CITATIONS_AND_RIGHTS.md` and `methods/docs/SVIRO_CHILDREN.md` before describing the supplementary synthetic SVIRO experiment.
 5. Use the code/notebooks in `source/` to trace the unchanged preprocessing, keypoint mapping, and official metric implementation.
 
 ## Scope and interpretation
 
-The experiments compare six pretrained pose systems on COCO single-person val2017 (921 images), SyRIP infant Test100, and a 53-image SVIRO BMW i3 child-only test subset. The reports explicitly separate the three image domains. SVIRO has 12 mapped limb joints and five unannotated face points. All score summaries use official `pycocotools.COCOeval(iouType='keypoints')` defaults. The perfect-coordinate evaluator check is documented in the source as an integrity check and is not a model result.
+The completed image experiments compare six pretrained pose systems on COCO single-person val2017 (921 images), SyRIP infant Test100, and a supplementary 53-image SVIRO synthetic-child subset from the BMW i3 test split. The reports explicitly separate these domains. SVIRO has 12 mapped limb joints and five unannotated face points, and its results apply only to synthetic vehicle-interior scenes. All score summaries use official `pycocotools.COCOeval(iouType='keypoints')` defaults. The perfect-coordinate evaluator check is documented in the source as an integrity check and is not a model score. A separate real-child image benchmark is a documented outstanding data requirement; this bundle does not claim to have completed one.
 
 BabyPose is intentionally excluded. Historical Colab project-defined scores are not combined with COCOeval. The COCO table is a 921-image subset and must not be described as the full COCO val2017 leaderboard.
 
@@ -233,7 +239,9 @@ def main() -> None:
             raise RuntimeError("ZIP does not contain the 18 selected run manifests")
         if any("/raw/" in name or "model_cache" in name or "babypose" in name.lower() for name in names):
             raise RuntimeError("Source images or model cache leaked into package")
-        if any(name.lower().endswith((".jpg", ".jpeg", ".bmp")) for name in names):
+        if any(name.lower().endswith((".jpg", ".jpeg", ".bmp"))
+               or (name.lower().endswith(".png") and "/figures/" not in name.lower())
+               for name in names):
             raise RuntimeError("Dataset source images leaked into package")
         checksum_entry = next(name for name in names if name.endswith("/SHA256SUMS.txt"))
         for line in archive.read(checksum_entry).decode("utf-8").splitlines():

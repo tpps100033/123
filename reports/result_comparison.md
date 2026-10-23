@@ -23,7 +23,7 @@ The Δ column is descriptive because the COCO and SyRIP datasets have different 
 
 ## Child-only SVIRO comparison
 
-All six models also completed the same 53-image SVIRO BMW i3 child-only held-out subset. The sample set contains exactly one child and no labeled adult or infant per scene. Its 12 mapped limb joints and five unlabelled face points use the declared mapping and visibility policy in [docs/SVIRO_CHILD.md](../docs/SVIRO_CHILD.md). The official SVIRO person boxes provide annotation area. The evaluation uses the same unmodified COCOeval implementation and defaults; these are child-domain scores, not COCO leaderboard results. Since five face landmarks are unlabelled and are ignored by COCOeval, interpret the scores separately from COCO and SyRIP.
+All six models also completed the same 53-image SVIRO BMW i3 child-only held-out subset. The sample set contains exactly one labeled child and no labeled adult or infant per synthetic vehicle scene. Its 12 mapped limb joints and five unlabelled face points use the declared mapping and visibility policy in [docs/SVIRO_CHILD.md](../docs/SVIRO_CHILD.md). The official SVIRO person boxes provide annotation area. The evaluation uses the same unmodified COCOeval implementation and defaults. These are supplementary synthetic vehicle-interior stress-test scores, not evidence of performance on real children or COCO leaderboard results. Since five face landmarks are unlabelled and ignored by COCOeval, interpret the scores separately from COCO and SyRIP.
 
 | Model | SVIRO child AP | AP50 | AP75 | AR | Images / errors | Runtime device |
 |---|---:|---:|---:|---:|---:|---|

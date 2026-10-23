@@ -8,7 +8,7 @@ LOG="$ROOT/06_logs/research_$(date -u +%Y%m%dT%H%M%SZ).log"
 exec > >(tee -a "$LOG") 2>&1
 printf 'Starting full local research run. GPU thermal cutoff: %s C. Log: %s\n' "$THERMAL_LIMIT" "$LOG"
 [[ -f "$ROOT/02_datasets/canonical/sviro_child_i3_test53_coco12/dataset_manifest.json" ]] || {
-  printf 'Prepare the child dataset on Windows first: py -3.9 scripts/prepare_sviro_child.py\n' >&2
+  printf 'Prepare the SVIRO BMW i3 supplementary set on Windows first: py -3.9 scripts/prepare_sviro_child.py\n' >&2
   exit 2
 }
 
@@ -33,7 +33,6 @@ run_model rtmpose_m rtmpose
 run_model yolo11x_pose yolo
 run_model openpose_coco18 openpose
 run_model sapiens_1b_coco sapiens
-"$ENV_ROOT/rtmpose/bin/python" "$ROOT/scripts/compare_sviro_child.py"
 "$ENV_ROOT/rtmpose/bin/python" "$ROOT/scripts/merge_results.py"
 "$ENV_ROOT/rtmpose/bin/python" "$ROOT/scripts/analyse_results.py"
 printf 'All available model/dataset runs completed. Partial, failed, or thermally stopped runs are excluded from merge.\n'

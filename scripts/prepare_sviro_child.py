@@ -72,7 +72,8 @@ class HttpRangeFile(io.RawIOBase):
                 # read the requested bytes then close curl instead of waiting
                 # for EOF (which would stream the complete 2.7 GB archive).
                 process = subprocess.Popen(["curl.exe", "--fail", "--silent", "--show-error", "--location",
-                                            "--range", f"{start}-{end}", self.url], stdout=subprocess.PIPE)
+                                            "--max-time", "180", "--range", f"{start}-{end}", self.url],
+                                           stdout=subprocess.PIPE)
                 try:
                     data = process.stdout.read(end - start + 1)
                 finally:

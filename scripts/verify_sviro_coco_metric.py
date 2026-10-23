@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import argparse
 from pathlib import Path
 import sys
 
@@ -13,7 +14,12 @@ from benchmark_core.metrics import evaluate_coco_keypoints
 
 
 def main() -> None:
-    dataset = "sviro_child_i3_test53_coco12"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", choices=("sviro_child_i3_test53_coco12",
+                                               "sviro_children_allcars_test710_coco12"),
+                        default="sviro_child_i3_test53_coco12")
+    dataset = parser.parse_args().dataset
+    expected = 53 if dataset == "sviro_child_i3_test53_coco12" else 710
     handoff_root = ROOT / "02_datasets" / "canonical" / dataset
     manifest, rows = load_handoff(handoff_root)
     predictions = []
@@ -25,10 +31,10 @@ def main() -> None:
             "keypoints_xy": points,
             "keypoint_scores": [1.0] * 17,
         })
-    annotation_file = ROOT / "02_datasets" / "person_keypoints_sviro_child_i3_test53_coco12.json"
+    annotation_file = ROOT / "02_datasets" / f"person_keypoints_{dataset}.json"
     result, _ = evaluate_coco_keypoints(annotation_file, rows, predictions)
-    if result["selected_images"] != 53 or result["images_with_pose"] != 53:
-        raise RuntimeError("Oracle did not evaluate all 53 handoff images")
+    if result["selected_images"] != expected or result["images_with_pose"] != expected:
+        raise RuntimeError(f"Oracle did not evaluate all {expected} handoff images")
     if result["AP"] != 1.0 or result["AR"] != 1.0:
         raise RuntimeError(f"Perfect-coordinate COCOeval oracle failed: AP={result['AP']} AR={result['AR']}")
     print(json.dumps({"dataset_id": dataset, "index_sha256": manifest["index_sha256"],

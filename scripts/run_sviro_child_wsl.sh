@@ -6,7 +6,7 @@ env_root="${INFANTPOSE_ENV_ROOT:-$HOME/.local/share/infantpose/venvs}"
 limit="${INFANTPOSE_MAX_GPU_TEMP_C:-85}"
 dataset="sviro_child_i3_test53_coco12"
 [[ -f "02_datasets/canonical/$dataset/dataset_manifest.json" ]] || {
-  echo "Prepare the child dataset on Windows first: py -3.9 scripts/prepare_sviro_child.py" >&2
+  echo "Prepare the BMW i3 supplementary dataset on Windows first: py -3.9 scripts/prepare_sviro_child.py" >&2
   exit 2
 }
 models=(mediapipe_pose_heavy movenet_thunder rtmpose_m yolo11x_pose sapiens_1b_coco openpose_coco18)
@@ -25,4 +25,4 @@ for i in "${!models[@]}"; do
   echo "[SVIRO child] evaluate $model"
   INFANTPOSE_MAX_GPU_TEMP_C="$limit" "$python" "$root/scripts/run_research.py" --model "$model" --dataset "$dataset"
 done
-"$env_root/rtmpose/bin/python" "$root/scripts/compare_sviro_child.py"
+echo "SVIRO BMW i3 runs complete. This is a synthetic vehicle-interior stress test, not a real-child benchmark."

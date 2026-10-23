@@ -2,7 +2,7 @@
 
 Generated: 2026-10-23T09:23:49.077883+00:00
 
-This independent child set contains 53 scenes from the official BMW i3 test split. Each selected scene has exactly one child and no adult or infant. RGB frames, keypoints, visibility, and person boxes come from the official SVIRO release. Twelve limb joints map to COCO-17; the five unannotated face points have visibility zero. The released class-3 person box supplies area. Scores use official COCOeval defaults and are child-domain results, not COCO leaderboard scores.
+This supplementary synthetic set contains 53 scenes from the official BMW i3 test split. Each selected scene has exactly one labeled child and no adult or infant in a synthetic vehicle interior. RGB frames, keypoints, visibility, and person boxes come from the official SVIRO release. Twelve limb joints map to COCO-17; the five unannotated face points have visibility zero. The released class-3 person box supplies area. Scores use official COCOeval defaults and apply only to synthetic vehicle-interior imagery. They are not results on a real-child image benchmark or COCO leaderboard scores.
 
 | Model | Status | AP | AP50 | AP75 | AR | Images / errors | Device | Validation | GPU temp at end | Device memory at end |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: |

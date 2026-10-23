@@ -4,6 +4,8 @@
 
 This comparison uses the official SVIRO BMW i3 held-out test split. SVIRO is a synthetic vehicle-interior dataset with labeled people, children, and infants. The source license is CC BY-NC-SA 4.0; cite the SVIRO dataset paper when publishing results.
 
+This 53-scene BMW i3 handoff is the only completed SVIRO image evaluation. A broader annotation-only inventory identified 710 candidate scenes, but their RGB images and model results are not complete; see [SVIRO_CHILDREN.md](SVIRO_CHILDREN.md). SVIRO is synthetic vehicle-interior imagery and does not serve as a real-child benchmark.
+
 The deterministic subset includes every test scene whose filename labels exactly one class-2 child and no class-1 infant or class-3 adult. The current release contains 53 qualifying scenes. Each selected scene has one pose annotation, one RGB frame, and one official person box. The child remains seated and partially occluded by the car seat, which is part of this domain's test conditions.
 
 ## COCO-17 mapping
