@@ -34,7 +34,8 @@ datasets:
     reported_scale: "more than 6.5 million frames"
     access: public project page; verify current archive access and license before use
     annotation_status: map_and_audit_source_joint_semantics
-    cohort_status: candidate_not_downloaded_or_scored
+    cohort_status: pilot_pending_user_license_acceptance_and_credentials; planned_500_samples_from_cmu_test_run1; no_data_found_locally
+    pilot_plan: docs/SURREAL_PILOT_PLAN.md
   ltsh_synthetic_only:
     display_name: Learning to Train with Synthetic Humans, purely synthetic split
     year: 2019
