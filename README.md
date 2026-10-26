@@ -1,5 +1,9 @@
 # InfantPose-Bench — Windows 11 + WSL2 migration
 
+## Updated research direction
+
+The next study compares the zero-shot performance of the six existing pose systems on synthetic human imagery from multiple synthesis eras and pipelines. The previous COCO, SyRIP, and real-child runs are retained as historical baselines; they are not being relabeled as synthetic results. Candidate datasets, annotation limitations, access requirements, and the planned sampling/evaluation contract are documented in [docs/SYNTHETIC_DATASET_SELECTION.md](docs/SYNTHETIC_DATASET_SELECTION.md). The datasets are not yet downloaded or scored, so this is a selection plan rather than a completed experiment.
+
 This project keeps the Colab research artifacts intact and adds local WSL2 entry points. The fixed benchmark contract remains batch 1, 10 warm-up images, FP32, with AMP, compilation, quantization, and TensorRT disabled. Timing includes image decode, preprocessing, inference, and postprocessing. Accuracy uses the official `cocodataset/cocoapi` `COCOeval(iouType='keypoints')` implementation with its default OKS thresholds, keypoint sigmas, area ranges, recall thresholds, and `maxDets=20`. COCO-subset AP is reported as subset AP, not as a full-val2017 leaderboard score. SyRIP uses the same evaluator and is labeled as a custom-domain COCO-OKS evaluation. Pose coverage is diagnostic only, not an accuracy metric.
 
 ## Current state

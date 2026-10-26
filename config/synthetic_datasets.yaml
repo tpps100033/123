@@ -1,0 +1,66 @@
+study:
+  id: synthetic_pose_zero_shot_v1
+  status: candidate_selection
+  protocol: frozen six-model inference; no fine-tuning
+  models:
+    - mediapipe_pose_heavy
+    - movenet_thunder
+    - rtmpose_m
+    - yolo11x_pose
+    - sapiens_1b_coco
+    - openpose_coco18
+  initial_target_images_per_dataset: 500
+  expansion_target_images_per_dataset: 1000
+  annotation_schema: coco17_slots_with_source_provenance
+  evaluation: cocodataset_cocoapi_COCOeval_keypoints
+  pending_dataset_access_and_annotation_audit: true
+
+datasets:
+  surreal:
+    display_name: SURREAL
+    year: 2017
+    synthesis: mocap_driven_parametric_body_rendering
+    source: https://www.di.ens.fr/willow/research/surreal/
+    reported_scale: "more than 6.5 million frames"
+    access: public project page; verify current archive access and license before use
+    annotation_status: map_and_audit_source_joint_semantics
+    cohort_status: candidate_not_downloaded_or_scored
+  ltsh_synthetic_only:
+    display_name: Learning to Train with Synthetic Humans, purely synthetic split
+    year: 2019
+    synthesis: smplh_people_rendered_on_varied_real_backgrounds
+    source: https://ltsh.is.tue.mpg.de/
+    reported_scale: "70,379 frames; 580,693 labeled poses"
+    access: registration required
+    annotation_status: map_verified_2d_labels; exclude mixed_and_stylized_splits_from_pure_synthetic_cohort
+    cohort_status: candidate_not_downloaded_or_scored
+  jta:
+    display_name: Joint Track Auto
+    year: 2018
+    synthesis: gta_v_game_engine
+    source: https://github.com/fabbrimatteo/JTA-Dataset
+    reported_scale: "512 videos; approximately 460,800 frames"
+    access: download key and GTA V/research-use declaration required
+    license: CC-BY-NC-4.0
+    annotation_status: 22_joint_source_skeleton; audit_converter_and_visibility_before_COCO_mapping
+    cohort_status: optional_candidate_not_downloaded_or_scored
+  agora:
+    display_name: AGORA
+    year: 2021
+    synthesis: scan_derived_smplx_multi_person_photorealistic_rendering
+    source: https://agora.is.tue.mpg.de/
+    reported_scale: "about 17,000 images; 173,000 person crops; includes child scans"
+    access: account registration and license agreement required
+    annotation_status: project_smplx_ground_truth_with_camera; audit_projected_coco_landmarks
+    cohort_status: candidate_not_downloaded_or_scored
+  bedlam:
+    display_name: BEDLAM
+    year: 2023
+    synthesis: smplx_clothing_simulation_blender_unreal
+    source: https://bedlam.is.tue.mpg.de/
+    reported_scale: "10,450 sequences at 30 fps; 6 fps paper-reproduction version"
+    access: registration and noncommercial research license required
+    redistribution: prohibited
+    annotation_status: project_smplx_ground_truth_with_camera; audit_projected_coco_landmarks
+    cohort_status: candidate_not_downloaded_or_scored
+
