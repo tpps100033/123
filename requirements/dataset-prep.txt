@@ -1,2 +1,4 @@
-# Isolated Windows-only image cropping environment for COCO-UniHuman preparation.
+# Isolated Windows dataset-preparation environment (image crops and SURREAL MAT conversion).
+numpy==2.0.2
 Pillow==11.3.0
+scipy==1.13.1
