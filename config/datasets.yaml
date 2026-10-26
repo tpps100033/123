@@ -23,3 +23,21 @@ datasets:
     apparent_age_years: [3, 17]
     license: research-only; COCO-UniHuman annotations CC BY 4.0; images remain subject to source image terms
     note: Excludes COCO evaluation IDs and byte-identical source images; one child crop per unique source image hash.
+  simuletic_cctv_fall_pilot111:
+    display_name: Simuletic Synthetic CCTV Fall Pilot (111 images)
+    domain: synthetic_cctv_fall_pose_pilot
+    expected_samples: 111
+    annotation_contract: coco17_exact_source_yolo_to_pixels
+    metric: cocoapi_keypoint_oks
+    source: https://huggingface.co/datasets/Simuletic/CCTV_Incident_Dataset_Fall_Lying_Down_Detection
+    license: CC BY 4.0
+    role: exploratory workflow pilot only; 111 fall-dominated images are not the main general-human synthetic benchmark
+  simuletic_cctv_fall_singleperson_pilot111:
+    display_name: Simuletic Synthetic CCTV Single-Person Pilot (111 images)
+    domain: synthetic_cctv_fall_pose_pilot
+    expected_samples: 111
+    annotation_contract: coco17_exact_source_yolo_largest_person_per_image
+    metric: cocoapi_keypoint_oks
+    source: https://huggingface.co/datasets/Simuletic/CCTV_Incident_Dataset_Fall_Lying_Down_Detection
+    license: CC BY 4.0
+    role: exploratory workflow pilot only; not the primary general-human synthetic benchmark

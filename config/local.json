@@ -24,6 +24,18 @@
       "annotation": "02_datasets/person_keypoints_coco_unihuman_child_val134.json",
       "expected_samples": 134,
       "mapping": "cocounihuman_apparent_age_3_17_crop_coco17_v1"
+    },
+    "simuletic_cctv_fall_pilot111": {
+      "raw": "02_datasets/source_archives/simuletic_cctv_fall_pilot",
+      "annotation": "02_datasets/canonical/simuletic_cctv_fall_pilot111/annotations.json",
+      "expected_samples": 111,
+      "mapping": "simuletic_yolo_coco17_xyv_to_cocoapi_v1"
+    },
+    "simuletic_cctv_fall_singleperson_pilot111": {
+      "raw": "02_datasets/source_archives/simuletic_cctv_fall_pilot",
+      "annotation": "02_datasets/canonical/simuletic_cctv_fall_singleperson_pilot111/annotations.json",
+      "expected_samples": 111,
+      "mapping": "simuletic_yolo_coco17_largest_person_per_image_v1"
     }
   },
   "profile": "fair_reference"

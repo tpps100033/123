@@ -1,6 +1,6 @@
 study:
   id: synthetic_pose_zero_shot_v1
-  status: candidate_selection
+  status: candidate_selection_with_pipeline_pilot
   protocol: frozen six-model inference; no fine-tuning
   models:
     - mediapipe_pose_heavy
@@ -16,6 +16,16 @@ study:
   pending_dataset_access_and_annotation_audit: true
 
 datasets:
+  simuletic_cctv_fall_singleperson_pilot111:
+    display_name: Simuletic CCTV fall/lying synthetic pilot
+    year: 2025
+    synthesis: synthetic_cctv_scene_generation
+    source: https://huggingface.co/datasets/Simuletic/CCTV_Incident_Dataset_Fall_Lying_Down_Detection
+    reported_scale: "111 free-sample images; 111 selected people from 121 source annotations"
+    license: CC-BY-4.0 declared by the dataset card
+    annotation_status: exact_coco17_yolo_xyv_to_pixel_coco; largest_bbox_per_image
+    cohort_status: pilot_scored_2026-10-26; fall_dominated; excluded_from_general_human_primary_cohort
+    result_report: reports/simuletic_cctv_singleperson_pilot_2026-10-26.md
   surreal:
     display_name: SURREAL
     year: 2017
@@ -68,7 +78,7 @@ datasets:
     year: 2026
     synthesis: unreal_engine_100_actors_1400_animations_three_environments
     source: https://huggingface.co/datasets/kikitora/curdie
-    reported_scale: "1,408,410 images; 30 fps; 40 GB multi-volume archive parts"
+    reported_scale: "1,408,410 images; 30 fps; 919 GB total; 42.9 GB archive volumes"
     license: Apache-2.0 declared by Hugging Face dataset card; verify included license and asset terms
     annotation_status: dataset_card_reports_direct_coco17_xyv; audit_schema_visibility_coordinates_and_frame_deduplication
     cohort_status: top_candidate_not_downloaded_or_scored

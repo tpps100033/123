@@ -4,6 +4,8 @@
 
 The next study compares the zero-shot performance of the six existing pose systems on synthetic human imagery from multiple synthesis eras and pipelines. The previous COCO, SyRIP, and real-child runs are retained as historical baselines; they are not being relabeled as synthetic results. Candidate datasets, annotation limitations, access requirements, and the planned sampling/evaluation contract are documented in [docs/SYNTHETIC_DATASET_SELECTION.md](docs/SYNTHETIC_DATASET_SELECTION.md). The datasets are not yet downloaded or scored, so this is a selection plan rather than a completed experiment.
 
+For an early pipeline check, the public Simuletic CCTV fall sample is configured as a 111-image pilot with exact COCO-17 labels. All six adapters completed the one-person-per-image protocol with official COCO keypoint evaluation; four used CUDA and two recorded CPU fallback reasons. Results and limitations are in [reports/simuletic_cctv_singleperson_pilot_2026-10-26.md](reports/simuletic_cctv_singleperson_pilot_2026-10-26.md). It is deliberately excluded from the primary general-human cohort because it is small and fall-dominated. CURDIE3 is a stronger full-study candidate but its HF repository is 919 GB; it was not downloaded under the current network budget.
+
 This project keeps the Colab research artifacts intact and adds local WSL2 entry points. The fixed benchmark contract remains batch 1, 10 warm-up images, FP32, with AMP, compilation, quantization, and TensorRT disabled. Timing includes image decode, preprocessing, inference, and postprocessing. Accuracy uses the official `cocodataset/cocoapi` `COCOeval(iouType='keypoints')` implementation with its default OKS thresholds, keypoint sigmas, area ranges, recall thresholds, and `maxDets=20`. COCO-subset AP is reported as subset AP, not as a full-val2017 leaderboard score. SyRIP uses the same evaluator and is labeled as a custom-domain COCO-OKS evaluation. Pose coverage is diagnostic only, not an accuracy metric.
 
 ## Current state
@@ -42,6 +44,10 @@ bash scripts/build_openpose_cuda.sh
 python scripts/gpu_diagnostics.py
 python scripts/prepare_datasets.py
 .venvs/dataset-prep/Scripts/python.exe scripts/prepare_datasets.py --dataset coco_unihuman_child_val134
+python scripts/prepare_simuletic_pilot.py
+INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_singleperson_pilot111
+python scripts/validate_model.py --model yolo11x_pose --dataset simuletic_cctv_fall_pilot111
+INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_pilot111
 python scripts/prepare_model_assets.py
 python scripts/validate_model.py --model mediapipe_pose_heavy --dataset coco_singleperson_val2017
 python scripts/validate_model.py --model sapiens_1b_coco --dataset coco_singleperson_val2017

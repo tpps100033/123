@@ -7,7 +7,7 @@ from benchmark_core.data import load_handoff
 from scripts.run_research import make_adapter
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100','coco_unihuman_child_val134']); a=p.parse_args()
+    p=argparse.ArgumentParser(); p.add_argument('--model',required=True,choices=['mediapipe_pose_heavy','movenet_thunder','rtmpose_m','yolo11x_pose','sapiens_1b_coco','openpose_coco18']); p.add_argument('--dataset',default='coco_singleperson_val2017',choices=['coco_singleperson_val2017','syrip_test100','coco_unihuman_child_val134','simuletic_cctv_fall_pilot111','simuletic_cctv_fall_singleperson_pilot111']); a=p.parse_args()
     result={'model_id':a.model,'dataset_id':a.dataset,'started_utc':datetime.now(timezone.utc).isoformat(),'status':'failed','single_image':None,'batch_two':None,'gpu_used':False}
     try:
         adapter=make_adapter(a.model); handoff,rows=load_handoff(ROOT/'02_datasets'/'canonical'/a.dataset)
