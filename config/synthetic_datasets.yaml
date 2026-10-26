@@ -63,4 +63,22 @@ datasets:
     redistribution: prohibited
     annotation_status: project_smplx_ground_truth_with_camera; audit_projected_coco_landmarks
     cohort_status: candidate_not_downloaded_or_scored
+  curdie3:
+    display_name: CURDIE3
+    year: 2026
+    synthesis: unreal_engine_100_actors_1400_animations_three_environments
+    source: https://huggingface.co/datasets/kikitora/curdie
+    reported_scale: "1,408,410 images; 30 fps; 40 GB multi-volume archive parts"
+    license: Apache-2.0 declared by Hugging Face dataset card; verify included license and asset terms
+    annotation_status: dataset_card_reports_direct_coco17_xyv; audit_schema_visibility_coordinates_and_frame_deduplication
+    cohort_status: top_candidate_not_downloaded_or_scored
+  synplerhuman:
+    display_name: SynplerHuman
+    year: unknown
+    synthesis: SMPL-X synthetic human images; inspect source paper and rendering details
+    source: https://huggingface.co/datasets/princeton-vl/SynplerHuman
+    reported_scale: "about 17.2K rows; 242 GB repository"
+    license: CC-BY-NC-SA-4.0 declared by Hugging Face dataset page
+    annotation_status: 2d_gtkps_visibility_listed; inspect_schema_before_mapping
+    cohort_status: secondary_candidate_not_downloaded_or_scored
 
