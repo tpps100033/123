@@ -41,3 +41,12 @@ datasets:
     source: https://huggingface.co/datasets/Simuletic/CCTV_Incident_Dataset_Fall_Lying_Down_Detection
     license: CC BY 4.0
     role: exploratory workflow pilot only; not the primary general-human synthetic benchmark
+  nameframe_quarry_crowd_singleperson_pilot300:
+    display_name: NameFrame Quarry Crowd Synthetic Single-Person Pilot (300 images)
+    domain: synthetic_unreal_quarry_crowd
+    expected_samples: 300
+    annotation_contract: coco17_slots_12_body_points_face_unlabeled
+    metric: cocoapi_keypoint_oks
+    source: https://getnameframe.com/datasets/quarry-crowd
+    license: free benchmark use under NameFrame sample terms; no dataset repackaging; check third-party Unreal asset terms before redistribution
+    role: exploratory synthetic-domain pilot; five face landmarks unavailable; see dataset manifest for source audit limitations

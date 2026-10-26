@@ -2,11 +2,11 @@
 
 ## Updated research direction
 
-The next study compares the zero-shot performance of the six existing pose systems on synthetic human imagery from multiple synthesis eras and pipelines. The previous COCO, SyRIP, and real-child runs are retained as historical baselines; they are not being relabeled as synthetic results. Candidate datasets, annotation limitations, access requirements, and the planned sampling/evaluation contract are documented in [docs/SYNTHETIC_DATASET_SELECTION.md](docs/SYNTHETIC_DATASET_SELECTION.md). The datasets are not yet downloaded or scored, so this is a selection plan rather than a completed experiment.
+The next study compares the zero-shot performance of the six existing pose systems on synthetic human imagery from multiple synthesis eras and pipelines. The previous COCO, SyRIP, and real-child runs are retained as historical baselines; they are not being relabeled as synthetic results. One 300-image NameFrame pilot has been downloaded and scored; broader cross-source acquisition and comparison remain pending. Candidate datasets, annotation limitations, access requirements, and the sampling/evaluation contract are documented in [docs/SYNTHETIC_DATASET_SELECTION.md](docs/SYNTHETIC_DATASET_SELECTION.md). This pilot does not complete the multi-source study.
 
 For an early pipeline check, the public Simuletic CCTV fall sample is configured as a 111-image pilot with exact COCO-17 labels. All six adapters completed the one-person-per-image protocol with official COCO keypoint evaluation; four used CUDA and two recorded CPU fallback reasons. Results and limitations are in [reports/simuletic_cctv_singleperson_pilot_2026-10-26.md](reports/simuletic_cctv_singleperson_pilot_2026-10-26.md). It is deliberately excluded from the primary general-human cohort because it is small and fall-dominated. CURDIE3 is a stronger full-study candidate but its HF repository is 919 GB; it was not downloaded under the current network budget.
 
-The SURREAL pilot is planned for 500 frames from its CMU test split, subject to its non-commercial research license and download credentials. No SURREAL files are currently present locally or in the linked Drive project; acquisition status and the partial 12-of-17 joint mapping plan are tracked in [docs/SURREAL_PILOT_PLAN.md](docs/SURREAL_PILOT_PLAN.md).
+The SURREAL archive endpoint returned HTTP 403, so that source was replaced for the active run. The public NameFrame Quarry Crowd sample (300 frames) is converted into COCO-17 slots and scored with the official COCO evaluator. It provides up to 12 body joints; nose, eyes, and ears remain unlabeled, and source visibility flags are preserved. All six models completed the 300-image run. The report records the unusually distant/crowded scene, near-duplicates, source audit discrepancy, model scores, and CPU/GPU execution. See [the NameFrame pilot report](reports/nameframe_quarry_crowd_pilot_2026-10-27.md) and [dataset selection notes](docs/SYNTHETIC_DATASET_SELECTION.md).
 
 This project keeps the Colab research artifacts intact and adds local WSL2 entry points. The fixed benchmark contract remains batch 1, 10 warm-up images, FP32, with AMP, compilation, quantization, and TensorRT disabled. Timing includes image decode, preprocessing, inference, and postprocessing. Accuracy uses the official `cocodataset/cocoapi` `COCOeval(iouType='keypoints')` implementation with its default OKS thresholds, keypoint sigmas, area ranges, recall thresholds, and `maxDets=20`. COCO-subset AP is reported as subset AP, not as a full-val2017 leaderboard score. SyRIP uses the same evaluator and is labeled as a custom-domain COCO-OKS evaluation. Pose coverage is diagnostic only, not an accuracy metric.
 
@@ -48,6 +48,8 @@ python scripts/prepare_datasets.py
 .venvs/dataset-prep/Scripts/python.exe scripts/prepare_datasets.py --dataset coco_unihuman_child_val134
 python scripts/prepare_simuletic_pilot.py
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_singleperson_pilot111
+python scripts/prepare_nameframe_quarry_crowd.py
+INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh nameframe_quarry_crowd_singleperson_pilot300
 python scripts/validate_model.py --model yolo11x_pose --dataset simuletic_cctv_fall_pilot111
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_pilot111
 python scripts/prepare_model_assets.py

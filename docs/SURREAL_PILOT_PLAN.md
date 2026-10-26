@@ -6,6 +6,8 @@ Prepare a local pilot of **500 images** (within the requested 300–1,000 range)
 
 ## Current acquisition status — 2026-10-27
 
+**Superseded:** the SURREAL archive endpoint returned HTTP 403. No SURREAL samples were downloaded or scored. The active replacement is the 300-image NameFrame Quarry Crowd pilot in [the run report](../reports/nameframe_quarry_crowd_pilot_2026-10-27.md); this document remains as the original access and mapping plan only.
+
 - Searched the active project source archive/canonical cache, the Downloads research folder, migration input, and the previously shared Google Drive project folder. No SURREAL source images, videos, or annotations were found.
 - The user confirmed personal acceptance of the official data license and that download credentials are available. No SURREAL data have yet been downloaded or evaluated; the secure local terminal is waiting for credential entry.
 - The license limits use to non-commercial scientific research and prohibits making the dataset available to third parties without prior written permission. Downloading or using the data itself signifies agreement. The user accepted personally; the agent will not do so on the user's behalf.

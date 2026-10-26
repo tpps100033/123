@@ -36,6 +36,12 @@
       "annotation": "02_datasets/canonical/simuletic_cctv_fall_singleperson_pilot111/annotations.json",
       "expected_samples": 111,
       "mapping": "simuletic_yolo_coco17_largest_person_per_image_v1"
+    },
+    "nameframe_quarry_crowd_singleperson_pilot300": {
+      "raw": "02_datasets/source_archives/nameframe_quarry_crowd/extracted",
+      "annotation": "02_datasets/canonical/nameframe_quarry_crowd_singleperson_pilot300/annotations.json",
+      "expected_samples": 300,
+      "mapping": "nameframe_yolo_pose_12_body_coco17_xyv_to_pixel_v1"
     }
   },
   "profile": "fair_reference"

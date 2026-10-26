@@ -5,8 +5,8 @@ ENV_ROOT="${INFANTPOSE_ENV_ROOT:-$HOME/.local/share/infantpose/venvs}"
 THERMAL_LIMIT="${INFANTPOSE_MAX_GPU_TEMP_C:-85}"
 DATASET="${1:-}"
 case "$DATASET" in
-  coco_singleperson_val2017|syrip_test100|coco_unihuman_child_val134|simuletic_cctv_fall_pilot111|simuletic_cctv_fall_singleperson_pilot111) ;;
-  *) echo "Usage: $0 {coco_singleperson_val2017|syrip_test100|coco_unihuman_child_val134|simuletic_cctv_fall_pilot111|simuletic_cctv_fall_singleperson_pilot111}" >&2; exit 2 ;;
+  coco_singleperson_val2017|syrip_test100|coco_unihuman_child_val134|simuletic_cctv_fall_pilot111|simuletic_cctv_fall_singleperson_pilot111|nameframe_quarry_crowd_singleperson_pilot300) ;;
+  *) echo "Usage: $0 {coco_singleperson_val2017|syrip_test100|coco_unihuman_child_val134|simuletic_cctv_fall_pilot111|simuletic_cctv_fall_singleperson_pilot111|nameframe_quarry_crowd_singleperson_pilot300}" >&2; exit 2 ;;
 esac
 mkdir -p "$ROOT/06_logs"
 LOG="$ROOT/06_logs/research_${DATASET}_$(date -u +%Y%m%dT%H%M%SZ).log"

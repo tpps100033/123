@@ -1,6 +1,6 @@
 study:
   id: synthetic_pose_zero_shot_v1
-  status: candidate_selection_with_pipeline_pilot
+  status: pilot_scored
   protocol: frozen six-model inference; no fine-tuning
   models:
     - mediapipe_pose_heavy
@@ -13,6 +13,7 @@ study:
   expansion_target_images_per_dataset: 1000
   annotation_schema: coco17_slots_with_source_provenance
   evaluation: cocodataset_cocoapi_COCOeval_keypoints
+  active_synthetic_pilot: nameframe_quarry_crowd_singleperson_pilot300
   pending_dataset_access_and_annotation_audit: true
 
 datasets:
@@ -26,15 +27,27 @@ datasets:
     annotation_status: exact_coco17_yolo_xyv_to_pixel_coco; largest_bbox_per_image
     cohort_status: pilot_scored_2026-10-26; fall_dominated; excluded_from_general_human_primary_cohort
     result_report: reports/simuletic_cctv_singleperson_pilot_2026-10-26.md
+  nameframe_quarry_crowd_singleperson_pilot300:
+    display_name: NameFrame Quarry Crowd
+    year: 2026
+    synthesis: unreal_engine_5_8_scene_and_character_rendering
+    source: https://getnameframe.com/datasets/quarry-crowd
+    reported_scale: "300 images; 3,692 source people; 1280x960"
+    license: free benchmark use under included NameFrame sample terms; no repackaging; third-party Unreal asset redistribution restricted
+    annotation_status: "COCO-17 index slots; 12 source body joints; five face points unavailable; source xyv visibility retained"
+    cohort_status: downloaded_sha256_verified_prepared_and_six_models_scored_2026-10-27
+    handoff: 02_datasets/canonical/nameframe_quarry_crowd_singleperson_pilot300
+    result_report: reports/nameframe_quarry_crowd_pilot_2026-10-27.md
+    known_source_limits: "74 near-duplicate frames; 2/3492 engine-visible people unlabeled; one map and narrow camera zone"
   surreal:
     display_name: SURREAL
     year: 2017
     synthesis: mocap_driven_parametric_body_rendering
     source: https://www.di.ens.fr/willow/research/surreal/
     reported_scale: "more than 6.5 million frames"
-    access: public project page; verify current archive access and license before use
+    access: archive returned HTTP 403; replaced for the active pilot
     annotation_status: map_and_audit_source_joint_semantics
-    cohort_status: user_accepted_license; planned_500_samples_from_cmu_test_run1; credentials_available_but_not_entered_locally; acquisition_pending
+    cohort_status: blocked_by_http_403_on_accessible_download_path; not_downloaded_or_scored
     pilot_plan: docs/SURREAL_PILOT_PLAN.md
   ltsh_synthetic_only:
     display_name: Learning to Train with Synthetic Humans, purely synthetic split
