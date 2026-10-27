@@ -42,7 +42,22 @@ Median end-to-end latency per image (decode + preprocessing + inference + postpr
 
 ## Interpretation
 
-For context, the existing 921-image COCO val2017 single-person results under the same COCOeval setup were: MediaPipe 0.420 AP, MoveNet 0.103, RTMPose 0.779, YOLO 0.718, Sapiens 0.536, and OpenPose 0.589. The SpineTrack sample is lower for all six (AP differences, SpineTrack minus COCO: −0.189, −0.098, −0.497, −0.426, −0.448, and −0.393 respectively). This consistent decline is compatible with a synthetic-to-real/domain and annotation-convention gap, but does not isolate its cause: model predictions are matched to only one selected synthetic person, source point visibility is binary 0/2, and the cohorts differ in scene composition and selection. It is not a controlled causal comparison.
+### COCO val2017 comparison
+
+The six existing COCO val2017 runs were reprocessed with the same supplemental OKS/PCK formulas used above. The COCO comparison handoff contains one selected person annotation in each of 921 images. The values below show COCO → SpineTrack; PCK deltas are percentage points.
+
+| Model | COCO OKS-AP → SpineTrack | Δ AP | Mean OKS → SpineTrack | PCK@0.10 → SpineTrack | Δ | PCK@0.20 → SpineTrack | Δ |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| MediaPipe | 0.418 → 0.231 | −0.187 | 0.551 → 0.610 | 70.9% → 61.7% | −9.2 pp | 75.5% → 71.3% | −4.2 pp |
+| MoveNet Thunder | 0.103 → 0.005 | −0.098 | 0.453 → 0.324 | 61.9% → 23.8% | −38.1 pp | 84.8% → 73.3% | −11.5 pp |
+| RTMPose-M | 0.775 → 0.282 | −0.492 | 0.841 → 0.677 | 93.9% → 66.5% | −27.4 pp | 96.0% → 76.7% | −19.3 pp |
+| YOLO11x-Pose | 0.722 → 0.292 | −0.430 | 0.846 → 0.670 | 93.6% → 66.0% | −27.6 pp | 97.6% → 76.2% | −21.4 pp |
+| Sapiens 1B COCO | 0.535 → 0.088 | −0.447 | 0.714 → 0.463 | 80.3% → 52.2% | −28.1 pp | 87.4% → 64.0% | −23.3 pp |
+| OpenPose COCO18 | 0.589 → 0.196 | −0.393 | 0.724 → 0.599 | 86.7% → 58.7% | −28.0 pp | 89.7% → 68.1% | −21.6 pp |
+
+COCO OKS-AP and both PCK thresholds decline for all six models. The largest strict-PCK decline is MoveNet (−38.1 pp); the other five lose about 9–28 pp. MediaPipe's mean OKS rises from 0.551 to 0.610 even though its AP and strict PCK decline. Mean OKS is an unranked per-image localization average, while AP includes confidence-ranked detections across OKS thresholds, so they need not change together.
+
+The comparison is descriptive, not a paired or statistically controlled test. COCO has 10,567 labeled keypoints (11.5 per image on average); SpineTrack has 16,618 (16.6 per image). Both use the same COCO-17 slots and formulas, but scene content, sample sizes, and labeled-joint coverage differ. No confidence interval or causal effect is claimed. The observed decreases are consistent with a synthetic-image domain gap and/or source annotation-convention differences, but this experiment does not separate those causes.
 
 On this cohort, YOLO11x-Pose and RTMPose-M lead by COCO AP (0.292 and 0.282); RTMPose has the highest mean OKS (0.677) and PCK@0.10 (0.665), narrowly ahead of YOLO (0.670 and 0.660). These measures do not have to produce identical rankings: mean OKS averages localization per image without confidence ranking, while COCO AP also evaluates ranked detections over ten OKS thresholds. MoveNet's PCK rises from 0.238 at 0.10 to 0.733 at 0.20; its low strict-threshold accuracy alongside much higher lenient-threshold PCK indicates substantial localization error even though a majority of labeled joints fall within 20% of the person's long-side box scale. The large AP50-to-AP75 drops for several models likewise show difficulty at stricter OKS thresholds. MediaPipe's 76 missed poses warrant per-joint and overlay error analysis; none of these results is a reason to alter ground-truth labels.
 
@@ -52,4 +67,4 @@ This is a frozen-model, zero-shot result on one Unreal Engine / biomechanical sy
 
 The official COCO metric definition and implementation are documented by the [COCO keypoint evaluation page](https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/keypoints-eval.htm) and [cocodataset/cocoapi `COCOeval`](https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocotools/cocoeval.py). PCK normalization conventions differ; the MPII benchmark popularized head-normalized PCKh, which is not interchangeable with this explicitly bbox-normalized PCK ([MPII benchmark paper](https://openaccess.thecvf.com/content_cvpr_2014/html/Andriluka_2D_Human_Pose_2014_CVPR_paper.html)).
 
-Supplemental aggregate metrics and a per-joint breakdown are saved in `spinetrack_unreal_pilot_2026-10-27_localization_metrics.csv` and `spinetrack_unreal_pilot_2026-10-27_per_joint_pck.csv`. Recompute them with `python3 scripts/analyse_spinetrack_pose_metrics.py` after the six complete prediction runs are available.
+Supplemental aggregate metrics, per-joint breakdown, and the COCO-to-SpineTrack comparison are saved in `coco_vs_spinetrack_localization_metrics_2026-10-27.csv`, `coco_vs_spinetrack_per_joint_pck_2026-10-27.csv`, and `coco_vs_spinetrack_model_comparison_2026-10-27.csv`. Recompute them with `python3 scripts/analyse_spinetrack_pose_metrics.py` after the complete COCO and SpineTrack prediction runs are available. SpineTrack-only exports are retained as `spinetrack_unreal_pilot_2026-10-27_localization_metrics.csv` and `spinetrack_unreal_pilot_2026-10-27_per_joint_pck.csv`.
