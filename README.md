@@ -52,6 +52,7 @@ python scripts/prepare_nameframe_quarry_crowd.py
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh nameframe_quarry_crowd_singleperson_pilot300
 python scripts/prepare_spinetrack_unreal_pilot.py
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh spinetrack_unreal_singleperson_pilot1000
+python scripts/analyse_spinetrack_pose_metrics.py
 python scripts/validate_model.py --model yolo11x_pose --dataset simuletic_cctv_fall_pilot111
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_pilot111
 python scripts/prepare_model_assets.py
