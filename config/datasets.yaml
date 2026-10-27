@@ -50,3 +50,12 @@ datasets:
     source: https://getnameframe.com/datasets/quarry-crowd
     license: free benchmark use under NameFrame sample terms; no dataset repackaging; check third-party Unreal asset terms before redistribution
     role: exploratory synthetic-domain pilot; five face landmarks unavailable; see dataset manifest for source audit limitations
+  spinetrack_unreal_singleperson_pilot1000:
+    display_name: SpineTrack-Unreal Synthetic Single-Person Pilot (1,000 images)
+    domain: synthetic_unreal_biomechanical_pose
+    expected_samples: 1000
+    annotation_contract: exact_coco17_subset_of_official_37_keypoint_order_with_out_of_frame_visible_points_filtered
+    metric: cocoapi_keypoint_oks
+    source: https://huggingface.co/datasets/saifkhichi96/spinetrack
+    license: CC BY-NC 4.0; attribution required; non-commercial use only
+    role: primary full-COCO-17 synthetic pilot; 1,000 images scored by all six models; single synthetic person per image; source has 25,000 Unreal Engine frames and 37 named points

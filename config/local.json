@@ -42,6 +42,12 @@
       "annotation": "02_datasets/canonical/nameframe_quarry_crowd_singleperson_pilot300/annotations.json",
       "expected_samples": 300,
       "mapping": "nameframe_yolo_pose_12_body_coco17_xyv_to_pixel_v1"
+    },
+    "spinetrack_unreal_singleperson_pilot1000": {
+      "raw": "02_datasets/source_archives/spinetrack_images.zip",
+      "annotation": "02_datasets/canonical/spinetrack_unreal_singleperson_pilot1000/annotations.json",
+      "expected_samples": 1000,
+      "mapping": "spinetrack_official_coco17_indices_0_16_from_37_quality_filter_v1"
     }
   },
   "profile": "fair_reference"

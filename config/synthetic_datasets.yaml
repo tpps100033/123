@@ -13,7 +13,7 @@ study:
   expansion_target_images_per_dataset: 1000
   annotation_schema: coco17_slots_with_source_provenance
   evaluation: cocodataset_cocoapi_COCOeval_keypoints
-  active_synthetic_pilot: nameframe_quarry_crowd_singleperson_pilot300
+  active_synthetic_pilot: spinetrack_unreal_singleperson_pilot1000
   pending_dataset_access_and_annotation_audit: true
 
 datasets:
@@ -39,6 +39,17 @@ datasets:
     handoff: 02_datasets/canonical/nameframe_quarry_crowd_singleperson_pilot300
     result_report: reports/nameframe_quarry_crowd_pilot_2026-10-27.md
     known_source_limits: "74 near-duplicate frames; 2/3492 engine-visible people unlabeled; one map and narrow camera zone"
+  spinetrack_unreal_singleperson_pilot1000:
+    display_name: SpineTrack-Unreal
+    year: 2025
+    synthesis: unreal_engine_5_with_opensim_biomechanical_ground_truth
+    source: https://huggingface.co/datasets/saifkhichi96/spinetrack
+    reported_scale: "25,000 synthetic frames; 37-keypoint labels per frame; 19.4 GB combined image archive"
+    license: CC-BY-NC-4.0
+    annotation_status: "official COCO indices 0-16 copied exactly; extra 20 points retained in the source audit file"
+    cohort_status: six_models_scored_official_cocoapi_2026-10-27
+    result_report: reports/spinetrack_unreal_pilot_2026-10-27.md
+    handoff: 02_datasets/canonical/spinetrack_unreal_singleperson_pilot1000
   surreal:
     display_name: SURREAL
     year: 2017
