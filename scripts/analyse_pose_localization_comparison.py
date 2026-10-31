@@ -87,9 +87,9 @@ def oks_for_instance(pred_points, gt_points, area: float) -> float:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--datasets", nargs=2, choices=DATASET_IDS,
-        default=["coco_singleperson_val2017", "coco_unihuman_child_val134"],
-        metavar=("REFERENCE_DATASET", "COMPARISON_DATASET"),
+        "--datasets", nargs="+", choices=DATASET_IDS,
+        default=["coco_unihuman_child_val134"],
+        metavar="DATASET",
     )
     parser.add_argument("--output-dir", type=Path, default=ROOT / "reports")
     args = parser.parse_args()
@@ -199,25 +199,29 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     by_dataset_model = {(row["dataset_id"], row["model_id"]): row for row in aggregate}
     comparison = []
-    reference_id, comparison_id = args.datasets
-    stem = f"{DATASET_SLUGS[reference_id]}_vs_{DATASET_SLUGS[comparison_id]}_pose_comparison_2026-11-01"
+    stem = (
+        f"{DATASET_SLUGS[args.datasets[0]]}_model_metrics_2026-11-01"
+        if len(args.datasets) == 1
+        else f"{'_vs_'.join(DATASET_SLUGS[item] for item in args.datasets)}_pose_comparison_2026-11-01"
+    )
     json_path = args.output_dir / f"{stem}.json"
     csv_path = args.output_dir / f"{stem}_metrics.csv"
     joints_path = args.output_dir / f"{stem}_per_joint_pck.csv"
-    comparison_path = args.output_dir / f"{stem}_model_comparison.csv"
-    for model_id in MODEL_IDS:
-        reference = by_dataset_model[(reference_id, model_id)]
-        compared = by_dataset_model[(comparison_id, model_id)]
-        row = {
-            "model_id": model_id,
-            "reference_dataset": reference_id,
-            "comparison_dataset": comparison_id,
-        }
-        for metric in ("COCO_AP", "mean_OKS_single_prediction", *(f"PCK@{threshold:.2f}" for threshold in PCK_THRESHOLDS)):
-            row[f"{metric}_reference"] = reference[metric]
-            row[f"{metric}_comparison"] = compared[metric]
-            row[f"{metric}_delta_comparison_minus_reference"] = compared[metric] - reference[metric]
-        comparison.append(row)
+    comparison_path = args.output_dir / f"{stem}_model_comparison.csv" if len(args.datasets) > 1 else None
+    for reference_id, comparison_id in zip(args.datasets, args.datasets[1:]):
+        for model_id in MODEL_IDS:
+            reference = by_dataset_model[(reference_id, model_id)]
+            compared = by_dataset_model[(comparison_id, model_id)]
+            row = {
+                "model_id": model_id,
+                "reference_dataset": reference_id,
+                "comparison_dataset": comparison_id,
+            }
+            for metric in ("COCO_AP", "mean_OKS_single_prediction", *(f"PCK@{threshold:.2f}" for threshold in PCK_THRESHOLDS)):
+                row[f"{metric}_reference"] = reference[metric]
+                row[f"{metric}_comparison"] = compared[metric]
+                row[f"{metric}_delta_comparison_minus_reference"] = compared[metric] - reference[metric]
+            comparison.append(row)
     payload = {
         "datasets": args.datasets,
         "metric_definition": {
@@ -236,11 +240,14 @@ def main() -> None:
             writer = csv.DictWriter(stream, fieldnames=list(records[0]))
             writer.writeheader()
             writer.writerows(records)
-    with comparison_path.open("w", newline="", encoding="utf-8") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(comparison[0]))
-        writer.writeheader()
-        writer.writerows(comparison)
-    print(json.dumps({"aggregate_csv": str(csv_path), "per_joint_csv": str(joints_path), "comparison_csv": str(comparison_path), "comparison": comparison}, indent=2))
+    summary = {"aggregate_csv": str(csv_path), "per_joint_csv": str(joints_path), "comparison": comparison}
+    if comparison_path is not None:
+        with comparison_path.open("w", newline="", encoding="utf-8") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(comparison[0]))
+            writer.writeheader()
+            writer.writerows(comparison)
+        summary["comparison_csv"] = str(comparison_path)
+    print(json.dumps(summary, indent=2))
 
 
 if __name__ == "__main__":

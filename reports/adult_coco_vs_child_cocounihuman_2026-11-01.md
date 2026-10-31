@@ -1,8 +1,8 @@
-# Adult-dominant COCO vs COCO-UniHuman child pose comparison — 2026-11-01
+# Historical: adult-dominant COCO vs COCO-UniHuman child pose comparison — 2026-11-01
 
 ## Scope
 
-The active comparison is the existing adult-dominant COCO val2017 single-person reference (921 images) versus the real-image COCO-UniHuman child cohort (134 person crops). The child set uses apparent-age labels 3–17; these are manual apparent-age estimates, not verified ages. Standard COCO val2017 has no age labels, so it is an adult-dominant general-human reference rather than a verified adult-only set. See [child-data provenance and selection](../docs/REAL_CHILD_DATASET_AVAILABILITY.md).
+This historical exploratory comparison used the adult-dominant COCO val2017 single-person reference (921 images) and the real-image COCO-UniHuman child cohort (134 person crops). The current primary analysis is child-only; see the [child-only report](child_coco_unihuman_val134_model_analysis_2026-11-01.md). The child set uses apparent-age labels 3–17; these are manual apparent-age estimates, not verified ages. Standard COCO val2017 has no age labels, so it is an adult-dominant general-human reference rather than a verified adult-only set. See [child-data provenance and selection](../docs/REAL_CHILD_DATASET_AVAILABILITY.md).
 
 All six frozen models already have complete runs on both datasets. The comparison reuses those predictions and evaluates them with the same official `pycocotools.COCOeval(iouType="keypoints")` AP/AR and supplemental metrics:
 

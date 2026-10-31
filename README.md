@@ -2,7 +2,7 @@
 
 ## Updated research direction
 
-The active comparison is real child pose performance against an adult-dominant COCO val2017 reference, using the six existing frozen pose systems. It compares 921 COCO images with 134 COCO-UniHuman child crops (apparent ages 3–17) using official OKS-based COCO AP plus consistently defined bbox-normalized PCK. The child set has better scores for five models, but its images are cropped while the adult reference uses full scenes, so these results do not isolate age effects. See the [adult COCO vs child report](reports/adult_coco_vs_child_cocounihuman_2026-11-01.md). The synthetic SpineTrack and NameFrame runs remain separate secondary analyses, documented in [synthetic dataset selection](docs/SYNTHETIC_DATASET_SELECTION.md).
+The active analysis evaluates the six frozen pose systems on the real-image COCO-UniHuman child cohort only: 134 person crops with manually estimated apparent ages 3–17 and COCO-17 keypoints. It reports official OKS-based COCO AP, mean OKS, and bbox-normalized PCK; the top model depends on the metric. See the [child-only model report](reports/child_coco_unihuman_val134_model_analysis_2026-11-01.md) and [machine-readable metrics](reports/child_coco_unihuman_val134_model_metrics_2026-11-01_metrics.csv). The earlier adult-dominant COCO cross-dataset comparison remains available as a historical exploratory report, not the active study. The synthetic SpineTrack and NameFrame runs are separate secondary analyses, documented in [synthetic dataset selection](docs/SYNTHETIC_DATASET_SELECTION.md).
 
 For an early pipeline check, the public Simuletic CCTV fall sample is configured as a 111-image pilot with exact COCO-17 labels. All six adapters completed the one-person-per-image protocol with official COCO keypoint evaluation; four used CUDA and two recorded CPU fallback reasons. Results and limitations are in [reports/simuletic_cctv_singleperson_pilot_2026-10-26.md](reports/simuletic_cctv_singleperson_pilot_2026-10-26.md). It is deliberately excluded from the primary general-human cohort because it is small and fall-dominated. CURDIE3 is a stronger full-study candidate but its HF repository is 919 GB; it was not downloaded under the current network budget.
 
@@ -52,7 +52,8 @@ python scripts/prepare_nameframe_quarry_crowd.py
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh nameframe_quarry_crowd_singleperson_pilot300
 python scripts/prepare_spinetrack_unreal_pilot.py
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh spinetrack_unreal_singleperson_pilot1000
-python scripts/analyse_pose_localization_comparison.py  # adult COCO vs child COCO-UniHuman; official OKS/AP plus shared bbox-normalized PCK
+python scripts/analyse_pose_localization_comparison.py  # child-only six-model metrics by default
+python scripts/analyse_pose_localization_comparison.py --datasets coco_singleperson_val2017 coco_unihuman_child_val134  # historical cross-dataset comparison
 python scripts/validate_model.py --model yolo11x_pose --dataset simuletic_cctv_fall_pilot111
 INFANTPOSE_MAX_GPU_TEMP_C=85 bash scripts/run_all_models_for_dataset.sh simuletic_cctv_fall_pilot111
 python scripts/prepare_model_assets.py
